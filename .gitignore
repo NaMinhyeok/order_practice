@@ -165,3 +165,5 @@ gradle-app.setting
 
 ### Querydsl ###
 /src/main/generated/
+
+/src/main/resources/application-dev.yaml
