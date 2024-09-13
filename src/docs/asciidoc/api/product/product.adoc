@@ -42,3 +42,14 @@ include::{snippets}/product-get/path-parameters.adoc[]
 ==== HTTP Response
 include::{snippets}/product-get/http-response.adoc[]
 include::{snippets}/product-get/response-fields.adoc[]
+
+[[products-get]]
+=== 상품 목록 조회
+
+==== HTTP Request
+include::{snippets}/products-get/http-request.adoc[]
+include::{snippets}/products-get/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/products-get/http-response.adoc[]
+include::{snippets}/products-get/response-fields.adoc[]

@@ -2,12 +2,16 @@ package gc.cafe.api.controller.product;
 
 import gc.cafe.api.ApiResponse;
 import gc.cafe.api.controller.product.request.ProductCreateRequest;
+import gc.cafe.api.controller.product.request.ProductSearchRequest;
 import gc.cafe.api.controller.product.request.ProductUpdateRequest;
 import gc.cafe.api.service.product.ProductService;
 import gc.cafe.api.service.product.response.ProductResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -34,6 +38,19 @@ public class ProductController {
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> getProduct(@PathVariable Long id) {
         return ApiResponse.ok(productService.getProduct(id));
+    }
+
+    // TODO: docs 작업
+    // TODO: 테스트 코드 작성
+    // TODO: 페이징 처리 & 검색이면 request param으로 받아오는게 정상이지 않나? 어떻게 설계할지 생각해볼 것
+    @GetMapping("/search")
+    public ApiResponse<List<ProductResponse>> getProductByNameOrCategory(ProductSearchRequest request) {
+        return ApiResponse.ok(productService.getProductByNameOrCategory(request.toServiceRequest()));
+    }
+
+    @GetMapping
+    public ApiResponse<Page<ProductResponse>> getProducts(@RequestParam(defaultValue = "1") int page) {
+        return ApiResponse.ok(productService.getProducts(page));
     }
 
 }
