@@ -6,6 +6,7 @@ import gc.cafe.api.service.product.request.ProductUpdateServiceRequest;
 import gc.cafe.api.service.product.response.ProductResponse;
 import gc.cafe.domain.product.Product;
 import gc.cafe.domain.product.ProductRepository;
+import gc.cafe.global.aop.Trace;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,13 +25,14 @@ public class ProductServiceImpl implements ProductService {
 
     private final int PAGE_SIZE = 10;
 
-
+    @Trace
     @Override
     public ProductResponse createProduct(ProductCreateServiceRequest request) {
         Product saveProduct = productRepository.save(request.toEntity());
         return ProductResponse.of(saveProduct);
     }
 
+    @Trace
     @Override
     public Long deleteProduct(Long id) {
         Product product = getProductById(id);
