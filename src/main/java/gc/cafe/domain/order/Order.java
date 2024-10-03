@@ -44,6 +44,14 @@ public class Order extends BaseEntity {
         this.orderStatus = OrderStatus.ORDERED;
     }
 
+    public static Order create(String email, String address, String postcode) {
+        return Order.builder()
+            .email(email)
+            .address(address)
+            .postcode(postcode)
+            .build();
+    }
+
     public void updateStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }

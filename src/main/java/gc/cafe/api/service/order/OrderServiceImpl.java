@@ -35,11 +35,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse createOrder(OrderCreateServiceRequest request) {
 
-        Order order = Order.builder()
-            .email(request.getEmail())
-            .address(request.getAddress())
-            .postcode(request.getPostcode())
-            .build();
+        Order order = Order.create(request.getEmail(), request.getAddress(), request.getPostcode());
 
         Order savedOrder = orderRepository.save(order);
 
@@ -51,11 +47,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         for (Product product : products) {
-            OrderProduct orderProduct = OrderProduct.builder()
-                .order(savedOrder)
-                .product(product)
-                .quantity(request.getOrderProductQuantity().get(product.getId()))
-                .build();
+            OrderProduct orderProduct = OrderProduct.create(savedOrder, product, request.getOrderProductQuantity().get(product.getId()));
             orderProductRepository.save(orderProduct);
         }
 

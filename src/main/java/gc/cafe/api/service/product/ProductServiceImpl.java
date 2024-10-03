@@ -41,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse updateProduct(Long id, ProductUpdateServiceRequest request) {
         Product product = getProductById(id);
-        product.updateProduct(request);
+        product.updateProduct(request.getName(), request.getCategory(), request.getPrice(), request.getDescription());
         return ProductResponse.of(product);
     }
 
