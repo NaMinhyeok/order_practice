@@ -1,5 +1,6 @@
 package gc.cafe.docs.order;
 
+import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
 import gc.cafe.api.controller.order.OrderController;
 import gc.cafe.api.controller.order.request.OrderCreateRequest;
 import gc.cafe.api.controller.order.request.OrderProductQuantity;
@@ -21,7 +22,6 @@ import static gc.cafe.domain.order.OrderStatus.ORDERED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -92,7 +92,7 @@ public class OrderControllerDocsTest extends RestDocsSupport {
                     ))
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("order-create",
+            .andDo(MockMvcRestDocumentationWrapper.document("order-create",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 requestFields(
@@ -180,7 +180,7 @@ public class OrderControllerDocsTest extends RestDocsSupport {
             )
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("order-get",
+            .andDo(MockMvcRestDocumentationWrapper.document("order-get",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 pathParameters(
@@ -278,7 +278,7 @@ public class OrderControllerDocsTest extends RestDocsSupport {
             )
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("orders-get-by-email",
+            .andDo(MockMvcRestDocumentationWrapper.document("orders-get-by-email",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 queryParameters(
