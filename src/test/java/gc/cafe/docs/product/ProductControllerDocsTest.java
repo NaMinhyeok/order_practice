@@ -1,5 +1,6 @@
 package gc.cafe.docs.product;
 
+import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
 import gc.cafe.api.controller.product.ProductController;
 import gc.cafe.api.controller.product.request.ProductCreateRequest;
 import gc.cafe.api.controller.product.request.ProductUpdateRequest;
@@ -23,14 +24,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ProductControllerDocsTest extends RestDocsSupport {
@@ -68,7 +66,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
             )
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("product-create",
+            .andDo(MockMvcRestDocumentationWrapper.document("product-create",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 requestFields(
@@ -121,7 +119,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
             )
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("product-delete",
+            .andDo(MockMvcRestDocumentationWrapper.document("product-delete",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 pathParameters(
@@ -169,7 +167,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
             )
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("product-update",
+            .andDo(MockMvcRestDocumentationWrapper.document("product-update",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 requestFields(
@@ -235,7 +233,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
             )
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("product-get",
+            .andDo(MockMvcRestDocumentationWrapper.document("product-get",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 pathParameters(
@@ -296,7 +294,7 @@ public class ProductControllerDocsTest extends RestDocsSupport {
                     .contentType(MediaType.APPLICATION_JSON))
             .andDo(print())
             .andExpect(status().isOk())
-            .andDo(document("products-get",
+            .andDo(MockMvcRestDocumentationWrapper.document("products-get",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()),
                 queryParameters(
