@@ -166,4 +166,8 @@ gradle-app.setting
 ### Querydsl ###
 /src/main/generated/
 
+### .yaml ###
 /src/main/resources/application-dev.yaml
+
+### Swagger docs ###
+/src/main/resources/static/swagger-ui/
