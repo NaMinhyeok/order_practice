@@ -44,21 +44,10 @@ class OrderServiceImplTest extends IntegrationTestSupport {
     @Test
     void createOrder() {
         //given
-        Product product1 = Product.builder()
-            .name("스타벅스 원두")
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
+        Product product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산");
+        Product product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소");
 
-        Product product2 = Product.builder()
-            .name("스타벅스 라떼")
-            .category("음료")
-            .price(3000L)
-            .description("에스프레소")
-            .build();
-
-        productRepository.saveAll(List.of(product1, product2));
+        List<Product> givenProducts = productRepository.saveAll(List.of(product1, product2));
 
         OrderCreateServiceRequest request = OrderCreateServiceRequest.builder()
             .email("test@gmail.com")
@@ -67,11 +56,11 @@ class OrderServiceImplTest extends IntegrationTestSupport {
             .orderProductQuantity(
                 List.of(
                     OrderProductQuantity.builder()
-                        .productId(1L)
+                        .productId(givenProducts.get(0).getId())
                         .quantity(1)
                         .build(),
                     OrderProductQuantity.builder()
-                        .productId(2L)
+                        .productId(givenProducts.get(1).getId())
                         .quantity(2)
                         .build()
                 )
@@ -81,11 +70,10 @@ class OrderServiceImplTest extends IntegrationTestSupport {
         //when
         OrderResponse response = orderService.createOrder(request);
 
+        //then
         List<Order> orders = orderRepository.findAll();
-
         List<OrderProduct> orderProducts = orderProductRepository.findAll();
 
-        //then
         assertThat(orders).hasSize(1)
             .extracting("id", "email", "address.address", "address.postcode", "orderStatus")
             .containsExactlyInAnyOrder(
@@ -112,6 +100,41 @@ class OrderServiceImplTest extends IntegrationTestSupport {
                 tuple("원두", 50000L, 1),
                 tuple("음료", 3000L, 2)
             );
+    }
+
+    @DisplayName("상품을 주문할 때 주문한 상품을 찾을 수 없는 경우 주문 할 수 없다.")
+    @Test
+    void createOrderWhenProductNotFound() {
+        //given
+        Product product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산");
+        Product product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소");
+
+        productRepository.saveAll(List.of(product1, product2));
+
+        OrderCreateServiceRequest request = OrderCreateServiceRequest.builder()
+            .email("test@gmail.com")
+            .address("서울시 강남구")
+            .postcode("125454")
+            .orderProductQuantity(
+                List.of(
+                    OrderProductQuantity.builder()
+                        .productId(-1L)
+                        .quantity(1)
+                        .build(),
+                    OrderProductQuantity.builder()
+                        .productId(2L)
+                        .quantity(2)
+                        .build()
+                )
+            )
+            .build();
+
+        //when
+        //then
+        assertThatThrownBy(() -> orderService.createOrder(request))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("주문 상품 id 중 존재하지 않는 상품이 존재합니다.");
+
     }
 
 
@@ -169,7 +192,7 @@ class OrderServiceImplTest extends IntegrationTestSupport {
     @Test
     void getOrderByOrderIdWhenOrderIsNull() {
         //given
-        Long orderId = 1L;
+        Long orderId = -1L;
 
         //when
         //then

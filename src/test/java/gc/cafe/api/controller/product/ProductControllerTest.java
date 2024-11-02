@@ -55,21 +55,18 @@ class ProductControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.status").value("CREATED"))
             .andExpect(jsonPath("$.message").value("CREATED"))
             .andExpect(jsonPath("$.data").isMap())
-            .andExpect(jsonPath("$.data.id").isNumber())
-            .andExpect(jsonPath("$.data.name").isString())
-            .andExpect(jsonPath("$.data.category").isString())
-            .andExpect(jsonPath("$.data.price").isNumber())
-            .andExpect(jsonPath("$.data.description").isString());
+            .andExpect(jsonPath("$.data.id").value(1L))
+            .andExpect(jsonPath("$.data.name").value("스타벅스 원두"))
+            .andExpect(jsonPath("$.data.category").value("원두"))
+            .andExpect(jsonPath("$.data.price").value(50000L))
+            .andExpect(jsonPath("$.data.description").value("에티오피아산"));
     }
 
     @DisplayName("신규 상품을 등록 할 때 이름은 필수값이다.")
     @Test
     void createProductWithoutName() throws Exception {
         ProductCreateRequest request = ProductCreateRequest.builder()
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
+            .category("원두").price(50000L).description("에티오피아산").build();
 
         mockMvc.perform(
                 post("/api/v1/products")
@@ -88,10 +85,7 @@ class ProductControllerTest extends ControllerTestSupport {
     @Test
     void createProductWhenNameLengthIsOver20() throws Exception {
         ProductCreateRequest request = ProductCreateRequest.builder()
-            .name(generateFixedLengthString(21))
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
+            .name(generateFixedLengthString(21)).category("원두").price(50000L).description("에티오피아산")
             .build();
 
         mockMvc.perform(
@@ -884,6 +878,15 @@ class ProductControllerTest extends ControllerTestSupport {
 
     private static String generateFixedLengthString(int length) {
         return "나".repeat(length);
+    }
+
+    private ProductCreateRequest create(String name, String category, Long price, String description) {
+        return ProductCreateRequest.builder()
+            .name(name)
+            .category(category)
+            .price(price)
+            .description(description)
+            .build();
     }
 
 }

@@ -34,54 +34,20 @@ class OrderRepositoryTest extends IntegrationTestSupport {
         //given
         String email = "test@gmail.com";
 
-        Product product1 = Product.builder()
-            .name("스타벅스 원두")
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
-
-        Product product2 = Product.builder()
-            .name("스타벅스 라떼")
-            .category("음료")
-            .price(3000L)
-            .description("에스프레소")
-            .build();
-
-        Product product3 = Product.builder()
-            .name("스타벅스 베이글")
-            .category("베이커리")
-            .price(5000L)
-            .description("베이글")
-            .build();
-
+        Product product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산");
+        Product product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소");
+        Product product3 = Product.create("스타벅스 베이글", "베이커리", 5000L, "베이글");
         List<Product> products = productRepository.saveAll(List.of(product1, product2, product3));
 
-        Order order1 = Order.builder()
-            .email(email)
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
-
-        Order order2 = Order.builder()
-            .email(email)
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
-
+        Order order1 = Order.create(email, "서울시 강남구", "125454");
+        Order order2 = Order.create(email, "서울시 강남구", "125454");
         orderRepository.saveAll(List.of(order1, order2));
 
         OrderProduct orderProduct1 = createOrderProduct(order1, product1, 1);
         OrderProduct orderProduct2 = createOrderProduct(order1, product2, 2);
         OrderProduct orderProduct3 = createOrderProduct(order2, product2, 2);
         OrderProduct orderProduct4 = createOrderProduct(order2, product3, 4);
-
-        orderProductRepository.saveAll(List.of(
-            orderProduct1,
-            orderProduct2,
-            orderProduct3,
-            orderProduct4
-        ));
+        orderProductRepository.saveAll(List.of(orderProduct1, orderProduct2, orderProduct3, orderProduct4));
 
         //when
         List<Order> findOrdersByEmail = orderRepository.findByEmail(email);
@@ -93,19 +59,40 @@ class OrderRepositoryTest extends IntegrationTestSupport {
                 tuple("test@gmail.com", "서울시 강남구", "125454", ORDERED),
                 tuple("test@gmail.com", "서울시 강남구", "125454", ORDERED)
             );
-
         assertThat(findOrdersByEmail.get(0).getOrderProducts()).hasSize(2)
             .extracting("quantity")
-            .contains(
-                1, 2
-            );
-
+            .contains(1, 2);
         assertThat(findOrdersByEmail.get(1).getOrderProducts()).hasSize(2)
             .extracting("quantity")
-            .contains(
-                2, 4
-            );
+            .contains(2, 4);
+    }
 
+    @DisplayName("이메일을 통해 주문 목록을 조회할 때 일치하는 이메일이 없으면 빈 목록을 반환한다.")
+    @Test
+    void findOrdersByEmailWhenNotFoundEmail() {
+        //given
+        String email = "test@gmail.com";
+
+        Product product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산");
+        Product product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소");
+        Product product3 = Product.create("스타벅스 베이글", "베이커리", 5000L, "베이글");
+        List<Product> products = productRepository.saveAll(List.of(product1, product2, product3));
+
+        Order order1 = Order.create(email, "서울시 강남구", "125454");
+        Order order2 = Order.create(email, "서울시 강남구", "125454");
+        orderRepository.saveAll(List.of(order1, order2));
+
+        OrderProduct orderProduct1 = createOrderProduct(order1, product1, 1);
+        OrderProduct orderProduct2 = createOrderProduct(order1, product2, 2);
+        OrderProduct orderProduct3 = createOrderProduct(order2, product2, 2);
+        OrderProduct orderProduct4 = createOrderProduct(order2, product3, 4);
+        orderProductRepository.saveAll(List.of(orderProduct1, orderProduct2, orderProduct3, orderProduct4));
+
+        //when
+        List<Order> findOrdersByEmail = orderRepository.findByEmail("h@d.c");
+
+        //then
+        assertThat(findOrdersByEmail).hasSize(0);
     }
 
     @DisplayName("주문 상태로 주문 목록을 조회한다.")

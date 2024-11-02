@@ -35,11 +35,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse createOrder(OrderCreateServiceRequest request) {
 
-        Order order = Order.builder()
-            .email(request.getEmail())
-            .address(request.getAddress())
-            .postcode(request.getPostcode())
-            .build();
+        Order order = Order.create(request.getEmail(), request.getAddress(), request.getPostcode());
 
         Order savedOrder = orderRepository.save(order);
 
@@ -50,14 +46,11 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("주문 상품 id 중 존재하지 않는 상품이 존재합니다.");
         }
 
-        for (Product product : products) {
-            OrderProduct orderProduct = OrderProduct.builder()
-                .order(savedOrder)
-                .product(product)
-                .quantity(request.getOrderProductQuantity().get(product.getId()))
-                .build();
-            orderProductRepository.save(orderProduct);
-        }
+        List<OrderProduct> orderProducts = products.stream()
+            .map(product -> OrderProduct.create(savedOrder, product, request.getOrderProductQuantity().get(product.getId())))
+            .toList();
+
+        orderProductRepository.saveAll(orderProducts);
 
         return OrderResponse.of(savedOrder);
     }

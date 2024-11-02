@@ -40,9 +40,6 @@ public class ProductController {
         return ApiResponse.ok(productService.getProduct(id));
     }
 
-    // TODO: docs 작업
-    // TODO: 테스트 코드 작성
-    // TODO: 페이징 처리 & 검색이면 request param으로 받아오는게 정상이지 않나? 어떻게 설계할지 생각해볼 것
     @GetMapping("/search")
     public ApiResponse<List<ProductResponse>> getProductByNameOrCategory(ProductSearchRequest request) {
         return ApiResponse.ok(productService.getProductByNameOrCategory(request.toServiceRequest()));
