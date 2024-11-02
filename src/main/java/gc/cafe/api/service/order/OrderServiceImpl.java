@@ -46,10 +46,11 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("주문 상품 id 중 존재하지 않는 상품이 존재합니다.");
         }
 
-        for (Product product : products) {
-            OrderProduct orderProduct = OrderProduct.create(savedOrder, product, request.getOrderProductQuantity().get(product.getId()));
-            orderProductRepository.save(orderProduct);
-        }
+        List<OrderProduct> orderProducts = products.stream()
+            .map(product -> OrderProduct.create(savedOrder, product, request.getOrderProductQuantity().get(product.getId())))
+            .toList();
+
+        orderProductRepository.saveAll(orderProducts);
 
         return OrderResponse.of(savedOrder);
     }
