@@ -62,7 +62,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    finalizedBy('copyOasToSwagger')
 }
 
 tasks.register('copyOasToSwagger', Copy) {
@@ -107,6 +106,7 @@ postman {
 
 bootJar {
     dependsOn asciidoctor
+    dependsOn copyOasToSwagger
     from("${asciidoctor.outputDir}") {
         into 'static/docs'
     }

@@ -14,19 +14,6 @@
 <div id="swagger-ui"></div>
 <script src="/static/swagger-ui-bundle.js" charset="UTF-8"> </script>
 <script src="/static/swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
-<script>
-  window.onload = function() {
-    const ui = SwaggerUIBundle({
-      url: "/static/swagger-ui/openapi3.yaml", // 생성될 YAML 파일의 경로로 변경
-      dom_id: '#swagger-ui',
-      presets: [
-        SwaggerUIBundle.presets.apis,
-        SwaggerUIStandalonePreset
-      ],
-      layout: "StandaloneLayout"
-    });
-    window.ui = ui;
-  };
-</script>
+<script src="/static/swagger-initializer.js" charset="UTF-8"> </script>
 </body>
 </html>
