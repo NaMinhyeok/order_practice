@@ -1,34 +1,36 @@
-package gc.cafe.global.aop;
+package gc.cafe.global.aop
 
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
+import lombok.extern.slf4j.Slf4j
+import org.aspectj.lang.ProceedingJoinPoint
+import org.aspectj.lang.annotation.Around
+import org.aspectj.lang.annotation.Aspect
+import org.aspectj.lang.reflect.MethodSignature
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
+import org.springframework.util.StopWatch
 
-@Slf4j
 @Component
 @Aspect
-public class TraceAspect {
+class TraceAspect {
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     @Around("@annotation(Trace)")
-    public Object AssumeExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+    @Throws(Throwable::class)
+    fun AssumeExecutionTime(joinPoint: ProceedingJoinPoint): Any {
+        val stopWatch = StopWatch()
 
-        StopWatch stopWatch = new StopWatch();
+        stopWatch.start()
+        val result = joinPoint.proceed()
+        stopWatch.stop()
 
-        stopWatch.start();
-        Object result = joinPoint.proceed();
-        stopWatch.stop();
+        val totalTimeMillis = stopWatch.totalTimeMillis
 
-        long totalTimeMillis = stopWatch.getTotalTimeMillis();
+        val signature = joinPoint.signature as MethodSignature
+        val methodName = signature.method.name
 
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        String methodName = signature.getMethod().getName();
+        log.info("[TRACE] 실행 메서드: {}, 실행시간 = {}ms", methodName, totalTimeMillis)
 
-        log.info("[TRACE] 실행 메서드: {}, 실행시간 = {}ms", methodName, totalTimeMillis);
-
-        return result;
+        return result
     }
 }

@@ -1,14 +1,12 @@
-package gc.cafe.api.service.order;
+package gc.cafe.api.service.order
 
-import gc.cafe.api.service.order.request.OrderCreateServiceRequest;
-import gc.cafe.api.service.order.response.OrderResponse;
+import gc.cafe.api.service.order.request.OrderCreateServiceRequest
+import gc.cafe.api.service.order.response.OrderResponse
 
-import java.util.List;
+interface OrderService {
+    fun createOrder(request: OrderCreateServiceRequest): OrderResponse
 
-public interface OrderService {
-    OrderResponse createOrder(OrderCreateServiceRequest request);
+    fun getOrder(id: Long): OrderResponse
 
-    OrderResponse getOrder(Long id);
-
-    List<OrderResponse> getOrdersByEmail(String email);
+    fun getOrdersByEmail(email: String): List<OrderResponse>
 }

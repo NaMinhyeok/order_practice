@@ -1,13 +1,11 @@
-package gc.cafe;
+package gc.cafe
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.Test
+import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class CafeApplicationTests {
-
+internal class CafeApplicationTests {
     @Test
-    void contextLoads() {
+    fun contextLoads() {
     }
-
 }

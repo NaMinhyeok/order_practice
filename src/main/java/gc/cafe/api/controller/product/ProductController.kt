@@ -1,43 +1,38 @@
-package gc.cafe.api.controller.product;
+package gc.cafe.api.controller.product
 
-import gc.cafe.api.ApiResponse;
-import gc.cafe.api.controller.product.request.ProductCreateRequest;
-import gc.cafe.api.controller.product.request.ProductSearchRequest;
-import gc.cafe.api.controller.product.request.ProductUpdateRequest;
-import gc.cafe.api.service.product.ProductService;
-import gc.cafe.api.service.product.response.ProductResponse;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.*;
+import gc.cafe.api.ApiResponse
+import gc.cafe.api.controller.product.request.ProductCreateRequest
+import gc.cafe.api.controller.product.request.ProductUpdateRequest
+import gc.cafe.api.service.product.ProductService
+import gc.cafe.api.service.product.response.ProductResponse
+import jakarta.validation.Valid
+import org.springframework.web.bind.annotation.*
 
-import java.util.List;
-
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/products")
-public class ProductController {
-
-    private final ProductService productService;
-
+class ProductController(
+    private val productService: ProductService
+) {
     @PostMapping
-    public ApiResponse<ProductResponse> createProduct(@Valid @RequestBody ProductCreateRequest request) {
-        return ApiResponse.created(productService.createProduct(request.toServiceRequest()));
+    fun createProduct(@RequestBody request: @Valid ProductCreateRequest): ApiResponse<ProductResponse> {
+        return ApiResponse.created(productService.createProduct(request.toServiceRequest()))
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Long> deleteProduct(@PathVariable Long id) {
-        return ApiResponse.ok(productService.deleteProduct(id));
+    fun deleteProduct(@PathVariable id: Long): ApiResponse<Long> {
+        return ApiResponse.ok(productService.deleteProduct(id))
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<ProductResponse> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductUpdateRequest request) {
-        return ApiResponse.ok(productService.updateProduct(id, request.toServiceRequest()));
+    fun updateProduct(
+        @PathVariable id: Long,
+        @RequestBody request: @Valid ProductUpdateRequest
+    ): ApiResponse<ProductResponse> {
+        return ApiResponse.ok(productService.updateProduct(id, request.toServiceRequest()))
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductResponse> getProduct(@PathVariable Long id) {
-        return ApiResponse.ok(productService.getProduct(id));
+    fun getProduct(@PathVariable id: Long): ApiResponse<ProductResponse> {
+        return ApiResponse.ok(productService.getProduct(id))
     }
-
 }

@@ -1,792 +1,843 @@
-package gc.cafe.api.controller.order;
+package gc.cafe.api.controller.order
 
-import gc.cafe.ControllerTestSupport;
-import gc.cafe.api.controller.order.request.OrderCreateRequest;
-import gc.cafe.api.controller.order.request.OrderProductQuantity;
-import gc.cafe.api.service.order.request.OrderCreateServiceRequest;
-import gc.cafe.api.service.order.response.OrderDetailResponse;
-import gc.cafe.api.service.order.response.OrderResponse;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
+import gc.cafe.ControllerTestSupport
+import gc.cafe.api.controller.order.request.OrderCreateRequest
+import gc.cafe.api.controller.order.request.OrderProductQuantity
+import gc.cafe.api.service.order.request.OrderCreateServiceRequest
+import gc.cafe.api.service.order.response.OrderDetailResponse
+import gc.cafe.api.service.order.response.OrderResponse
+import gc.cafe.domain.order.OrderStatus
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.BDDMockito
+import org.springframework.http.MediaType
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
-import java.util.List;
-
-import static gc.cafe.domain.order.OrderStatus.ORDERED;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-class OrderControllerTest extends ControllerTestSupport {
-
-
+internal class OrderControllerTest : ControllerTestSupport() {
     @DisplayName("신규 주문을 생성한다.")
     @Test
-    void createOrder() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrder() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
-        given(orderService.createOrder(any(OrderCreateServiceRequest.class)))
+        BDDMockito.given<OrderResponse>(
+            orderService!!.createOrder(
+                ArgumentMatchers.any<OrderCreateServiceRequest>(
+                    OrderCreateServiceRequest::class.java
+                )
+            )
+        )
             .willReturn(
-                OrderResponse.builder()
-                    .id(1L)
-                    .orderStatus(ORDERED)
-                    .email("test@gmail.com")
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
+                OrderResponse(
+                    1L,
+                    "test@gmail.com",
+                    "서울시 강남구",
+                    "125454",
+                    OrderStatus.ORDERED,
+                    listOf(
+                        OrderDetailResponse(
+                            "원두",
+                            1000L,
+                            1
+                        ),
+                        OrderDetailResponse(
+                            "음료",
+                            2000L,
+                            2
+                        )
+                    )
+                )
+            )
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("201"))
-            .andExpect(jsonPath("$.status").value("CREATED"))
-            .andExpect(jsonPath("$.message").value("CREATED"))
-            .andExpect(jsonPath("$.data").isMap())
-            .andExpect(jsonPath("$.data.id").value(1L))
-            .andExpect(jsonPath("$.data.orderStatus").value("ORDERED"))
-            .andExpect(jsonPath("$.data.email").value("test@gmail.com"))
-            .andExpect(jsonPath("$.data.address").value("서울시 강남구"))
-            .andExpect(jsonPath("$.data.postcode").value("125454"))
-            .andExpect(jsonPath("$.data.orderDetails").isArray())
-            .andExpect(jsonPath("$.data.orderDetails[0].price").value(1000L))
-            .andExpect(jsonPath("$.data.orderDetails[0].quantity").value(1))
-            .andExpect(jsonPath("$.data.orderDetails[0].category").value("원두"))
-            .andExpect(jsonPath("$.data.orderDetails[1].price").value(2000L))
-            .andExpect(jsonPath("$.data.orderDetails[1].quantity").value(2))
-            .andExpect(jsonPath("$.data.orderDetails[1].category").value("음료"));
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("201"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isMap())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("ORDERED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.email").value("test@gmail.com"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.address").value("서울시 강남구"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.postcode").value("125454"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].price").value(1000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].quantity").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].category").value("원두"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].price").value(2000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].quantity").value(2))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].category").value("음료"))
     }
 
     @DisplayName("신규 주문을 생성 할 때 이메일은 이메일 형식이어야 한다.")
     @Test
-    void createOrderWithEmailForm() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWithEmailForm() {
+        val request = OrderCreateRequest(
+            "test",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("이메일 형식이어야 합니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("이메일 형식이어야 합니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 이메일은 필수값이다.")
     @Test
-    void createOrderWithoutEmail() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWithoutEmail() {
+        val request = OrderCreateRequest(
+            null,
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("이메일은 필수입니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("이메일은 필수입니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 이메일은 50자 이하여야 한다.")
     @Test
-    void createOrderWhenEmailLengthIsOver50() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email(generateFixedLengthString(41) + "@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWhenEmailLengthIsOver50() {
+        val request = OrderCreateRequest(
+            generateFixedLengthString(50)+"@gmail.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("이메일은 50자 이하여야 합니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("이메일은 50자 이하여야 합니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 이메일은 50자 이하여야 한다.")
     @Test
-    void createOrderWhenEmailLengthIs0() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email(generateFixedLengthString(40) + "@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWhenEmailLengthIs0() {
+        val request = OrderCreateRequest(
+            generateFixedLengthString(40)+"@gamil.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
-        given(orderService.createOrder(any(OrderCreateServiceRequest.class)))
+        BDDMockito.given<OrderResponse>(
+            orderService!!.createOrder(
+                ArgumentMatchers.any<OrderCreateServiceRequest>(
+                    OrderCreateServiceRequest::class.java
+                )
+            )
+        )
             .willReturn(
-                OrderResponse.builder()
-                    .id(1L)
-                    .orderStatus(ORDERED)
-                    .email(generateFixedLengthString(40) + "@gmail.com")
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
+                OrderResponse(
+                    1L,
+                    generateFixedLengthString(40)+"@gmail.com",
+                    "서울시 강남구",
+                    "125454",
+                    OrderStatus.ORDERED,
+                    listOf(
+                        OrderDetailResponse(
+                            "원두",
+                            1000L,
+                            1
+                        ),
+                        OrderDetailResponse(
+                            "음료",
+                            2000L,
+                            2
+                        )
+                    )
+                )
+            )
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("201"))
-            .andExpect(jsonPath("$.status").value("CREATED"))
-            .andExpect(jsonPath("$.message").value("CREATED"))
-            .andExpect(jsonPath("$.data").isMap())
-            .andExpect(jsonPath("$.data.id").value(1L))
-            .andExpect(jsonPath("$.data.orderStatus").value("ORDERED"))
-            .andExpect(jsonPath("$.data.email").value(generateFixedLengthString(40) + "@gmail.com"))
-            .andExpect(jsonPath("$.data.address").value("서울시 강남구"))
-            .andExpect(jsonPath("$.data.postcode").value("125454"))
-            .andExpect(jsonPath("$.data.orderDetails").isArray())
-            .andExpect(jsonPath("$.data.orderDetails[0].price").value(1000L))
-            .andExpect(jsonPath("$.data.orderDetails[0].quantity").value(1))
-            .andExpect(jsonPath("$.data.orderDetails[0].category").value("원두"))
-            .andExpect(jsonPath("$.data.orderDetails[1].price").value(2000L))
-            .andExpect(jsonPath("$.data.orderDetails[1].quantity").value(2))
-            .andExpect(jsonPath("$.data.orderDetails[1].category").value("음료"));
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("201"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isMap())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("ORDERED"))
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.data.email").value(generateFixedLengthString(40) + "@gmail.com")
+            )
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.address").value("서울시 강남구"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.postcode").value("125454"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].price").value(1000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].quantity").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].category").value("원두"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].price").value(2000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].quantity").value(2))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].category").value("음료"))
     }
 
     @DisplayName("신규 주문을 생성 할 때 주소는 필수값이다.")
     @Test
-    void createOrderWithoutAddress() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWithoutAddress() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            null,
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("주소는 필수입니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주소는 필수입니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 주소는 200자 이하여야 한다.")
     @Test
-    void createOrderWhenAddressLengthIsOver200() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address(generateFixedLengthString(201))
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWhenAddressLengthIsOver200() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            generateFixedLengthString(201),
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("주소는 200자 이하여야 합니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주소는 200자 이하여야 합니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 주소는 200자 이하여야 한다.")
     @Test
-    void createOrderWhenAddressLengthIs200() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address(generateFixedLengthString(200))
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWhenAddressLengthIs200() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            generateFixedLengthString(200),
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
-        given(orderService.createOrder(any(OrderCreateServiceRequest.class)))
+        BDDMockito.given<OrderResponse>(
+            orderService!!.createOrder(
+                ArgumentMatchers.any<OrderCreateServiceRequest>(
+                    OrderCreateServiceRequest::class.java
+                )
+            )
+        )
             .willReturn(
-                OrderResponse.builder()
-                    .id(1L)
-                    .orderStatus(ORDERED)
-                    .email("test@gmail.com")
-                    .address(generateFixedLengthString(200))
-                    .postcode("125454")
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
+                OrderResponse(
+                    1L,
+                    "test@gmail.com",
+                    generateFixedLengthString(200),
+                    "125454",
+                    OrderStatus.ORDERED,
+                    listOf(
+                        OrderDetailResponse(
+                            "원두",
+                            1000L,
+                            1
+                        ),
+                        OrderDetailResponse(
+                            "음료",
+                            2000L,
+                            2
+                        )
+                    )
+                )
+            )
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("201"))
-            .andExpect(jsonPath("$.status").value("CREATED"))
-            .andExpect(jsonPath("$.message").value("CREATED"))
-            .andExpect(jsonPath("$.data").isMap())
-            .andExpect(jsonPath("$.data.id").value(1L))
-            .andExpect(jsonPath("$.data.orderStatus").value("ORDERED"))
-            .andExpect(jsonPath("$.data.email").value("test@gmail.com"))
-            .andExpect(jsonPath("$.data.address").value(generateFixedLengthString(200)))
-            .andExpect(jsonPath("$.data.postcode").value("125454"))
-            .andExpect(jsonPath("$.data.orderDetails").isArray())
-            .andExpect(jsonPath("$.data.orderDetails[0].price").value(1000L))
-            .andExpect(jsonPath("$.data.orderDetails[0].quantity").value(1))
-            .andExpect(jsonPath("$.data.orderDetails[0].category").value("원두"))
-            .andExpect(jsonPath("$.data.orderDetails[1].price").value(2000L))
-            .andExpect(jsonPath("$.data.orderDetails[1].quantity").value(2))
-            .andExpect(jsonPath("$.data.orderDetails[1].category").value("음료"));
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("201"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isMap())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("ORDERED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.email").value("test@gmail.com"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.address").value(generateFixedLengthString(200)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.postcode").value("125454"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].price").value(1000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].quantity").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].category").value("원두"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].price").value(2000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].quantity").value(2))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].category").value("음료"))
     }
 
     @DisplayName("신규 주문을 생성 할 때 우편번호는 필수값이다.")
     @Test
-    void createOrderWithoutPostcode() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWithoutPostcode() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            null,
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("우편번호는 필수입니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("우편번호는 필수입니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 우편번호는 20자 이하여야 한다.")
     @Test
-    void createOrderWhenPostcodeLengthIsOver20() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode(generateFixedLengthString(21))
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWhenPostcodeLengthIsOver20() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            generateFixedLengthString(21),
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("우편번호는 20자 이하여야 합니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("우편번호는 20자 이하여야 합니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 우편번호는 20자 이하여야 한다.")
     @Test
-    void createOrderWhenPostcodeLengthIs200() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode(generateFixedLengthString(20))
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(
+        Exception::class
+    )
+    fun createOrderWhenPostcodeLengthIs200() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            generateFixedLengthString(20),
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
-        given(orderService.createOrder(any(OrderCreateServiceRequest.class)))
+        BDDMockito.given<OrderResponse>(
+            orderService!!.createOrder(
+                ArgumentMatchers.any<OrderCreateServiceRequest>(
+                    OrderCreateServiceRequest::class.java
+                )
+            )
+        )
             .willReturn(
-                OrderResponse.builder()
-                    .id(1L)
-                    .orderStatus(ORDERED)
-                    .email("test@gmail.com")
-                    .address("서울시 강남구")
-                    .postcode(generateFixedLengthString(20))
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
+                OrderResponse(
+                    1L,
+                    "test@gmail.com",
+                    "서울시 강남구",
+                    generateFixedLengthString(20),
+                    OrderStatus.ORDERED,
+                    listOf(
+                        OrderDetailResponse(
+                            "원두",
+                            1000L,
+                            1
+                        ),
+                        OrderDetailResponse(
+                            "음료",
+                            2000L,
+                            2
+                        )
+                    )
+                )
+            )
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("201"))
-            .andExpect(jsonPath("$.status").value("CREATED"))
-            .andExpect(jsonPath("$.message").value("CREATED"))
-            .andExpect(jsonPath("$.data").isMap())
-            .andExpect(jsonPath("$.data.id").value(1L))
-            .andExpect(jsonPath("$.data.orderStatus").value("ORDERED"))
-            .andExpect(jsonPath("$.data.email").value("test@gmail.com"))
-            .andExpect(jsonPath("$.data.address").value("서울시 강남구"))
-            .andExpect(jsonPath("$.data.postcode").value(generateFixedLengthString(20)))
-            .andExpect(jsonPath("$.data.orderDetails").isArray())
-            .andExpect(jsonPath("$.data.orderDetails[0].price").value(1000L))
-            .andExpect(jsonPath("$.data.orderDetails[0].quantity").value(1))
-            .andExpect(jsonPath("$.data.orderDetails[0].category").value("원두"))
-            .andExpect(jsonPath("$.data.orderDetails[1].price").value(2000L))
-            .andExpect(jsonPath("$.data.orderDetails[1].quantity").value(2))
-            .andExpect(jsonPath("$.data.orderDetails[1].category").value("음료"));
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("201"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("CREATED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isMap())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("ORDERED"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.email").value("test@gmail.com"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.address").value("서울시 강남구"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.postcode").value(generateFixedLengthString(20)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails").isArray())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].price").value(1000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].quantity").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].category").value("원두"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].price").value(2000L))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].quantity").value(2))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].category").value("음료"))
     }
 
     @DisplayName("신규 주문을 생성 할 때 상품은 필수값이다.")
     @Test
-    void createOrderWithoutProduct() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWithoutProduct() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            "125454",
+            null
+        )
 
-
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("주문 할 상품은 필수입니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 할 상품은 필수입니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 상품ID는 필수값이다.")
     @Test
-    void createOrderWithoutProductId() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWithoutProductId() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    null,
+                    1
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("상품 ID는 필수입니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("상품 ID는 필수입니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 수량은 필수값이다.")
     @Test
-    void createOrderWithoutProductQuantity() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWithoutProductQuantity() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    null
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("상품 수량은 1 이상이어야 합니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("상품 수량은 1 이상이어야 합니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
     @DisplayName("신규 주문을 생성 할 때 상품 수량은 양의 정수이다.")
     @Test
-    void createOrderWhenProductQuantityIsZero() throws Exception {
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(0)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
+    @Throws(Exception::class)
+    fun createOrderWhenProductQuantityIsZero() {
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    0
+                ),
+                OrderProductQuantity(
+                    2L,
+                    2
+                )
+            )
+        )
 
 
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("400"))
-            .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.message").value("상품 수량은 1 이상이어야 합니다."))
-            .andExpect(jsonPath("$.data").isEmpty());
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper!!.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("400"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("상품 수량은 1 이상이어야 합니다."))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty())
     }
 
-    @DisplayName("주문ID로 주문을 조회한다.")
+    @Throws(Exception::class)
     @Test
-    void getOrderByOrderId() throws Exception {
+    @DisplayName("주문ID로 주문을 조회한다.")
+    fun getOrderByOrderId()
+        {
+            val pathValue = 1L
 
-        Long pathValue = 1L;
+            BDDMockito.given<OrderResponse>(orderService!!.getOrder(pathValue))
+                .willReturn(
+                    OrderResponse(
+                        pathValue,
+                        "test@gmail.com",
+                        "서울시 강남구",
+                        "125454",
+                        OrderStatus.ORDERED,
+                        listOf(
+                            OrderDetailResponse(
+                                "원두",
+                                1000L,
+                                1
+                            ),
+                            OrderDetailResponse(
+                                "음료",
+                                2000L,
+                                2
+                            )
+                        )
+                    )
+                )
 
-        given(orderService.getOrder(pathValue))
-            .willReturn(
-                OrderResponse.builder()
-                    .id(pathValue)
-                    .orderStatus(ORDERED)
-                    .email("test@gmail.com")
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
-
-        mockMvc.perform(
-                get("/api/v1/orders/{id}", 1L)
+            mockMvc!!.perform(
+                RestDocumentationRequestBuilders.get("/api/v1/orders/{id}", 1L)
                     .contentType(MediaType.APPLICATION_JSON)
             )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("200"))
-            .andExpect(jsonPath("$.status").value("OK"))
-            .andExpect(jsonPath("$.message").value("OK"))
-            .andExpect(jsonPath("$.data").isMap())
-            .andExpect(jsonPath("$.data.id").value(1L))
-            .andExpect(jsonPath("$.data.orderStatus").value("ORDERED"))
-            .andExpect(jsonPath("$.data.email").value("test@gmail.com"))
-            .andExpect(jsonPath("$.data.address").value("서울시 강남구"))
-            .andExpect(jsonPath("$.data.postcode").value("125454"))
-            .andExpect(jsonPath("$.data.orderDetails").isArray())
-            .andExpect(jsonPath("$.data.orderDetails[0].price").value(1000L))
-            .andExpect(jsonPath("$.data.orderDetails[0].quantity").value(1))
-            .andExpect(jsonPath("$.data.orderDetails[0].category").value("원두"))
-            .andExpect(jsonPath("$.data.orderDetails[1].price").value(2000L))
-            .andExpect(jsonPath("$.data.orderDetails[1].quantity").value(2))
-            .andExpect(jsonPath("$.data.orderDetails[1].category").value("음료"));
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("OK"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("OK"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isMap())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("ORDERED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.email").value("test@gmail.com"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.address").value("서울시 강남구"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.postcode").value("125454"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].price").value(1000L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].quantity").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[0].category").value("원두"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].price").value(2000L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].quantity").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderDetails[1].category").value("음료"))
+        }
 
-    }
-
-    @DisplayName("이메일을 통해 주문을 조회한다.")
+    @Throws(Exception::class)
     @Test
-    void getOrderByEmail() throws Exception {
-        //given
-        String email = "test@gmail.com";
+    @DisplayName("이메일을 통해 주문을 조회한다.")
+    fun getOrderByEmail() {
+            //given
+            val email = "test@gmail.com"
 
-        given(orderService.getOrdersByEmail(email))
-            .willReturn(List.of(
-                OrderResponse.builder()
-                    .id(1L)
-                    .email(email)
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderStatus(ORDERED)
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build()
-            ));
+            BDDMockito.given<List<OrderResponse>>(orderService!!.getOrdersByEmail(email))
+                .willReturn(
+                    java.util.List.of(
+                        OrderResponse(
+                            1L,
+                            email,
+                            "서울시 강남구",
+                            "125454",
+                            OrderStatus.ORDERED,
+                            listOf(
+                                OrderDetailResponse(
+                                    "원두",
+                                    1000L,
+                                    1
+                                ),
+                                OrderDetailResponse(
+                                    "음료",
+                                    2000L,
+                                    2
+                                )
+                            )
+                        )
+                    )
+                )
 
-        mockMvc.perform(
-                get("/api/v1/orders")
+            mockMvc!!.perform(
+                RestDocumentationRequestBuilders.get("/api/v1/orders")
                     .param("email", email)
                     .contentType(MediaType.APPLICATION_JSON)
             )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("200"))
-            .andExpect(jsonPath("$.status").value("OK"))
-            .andExpect(jsonPath("$.message").value("OK"))
-            .andExpect(jsonPath("$.data").isArray())
-            .andExpect(jsonPath("$.data[0].id").value(1L))
-            .andExpect(jsonPath("$.data[0].orderStatus").value("ORDERED"))
-            .andExpect(jsonPath("$.data[0].email").value("test@gmail.com"))
-            .andExpect(jsonPath("$.data[0].address").value("서울시 강남구"))
-            .andExpect(jsonPath("$.data[0].postcode").value("125454"))
-            .andExpect(jsonPath("$.data[0].orderDetails").isArray())
-            .andExpect(jsonPath("$.data[0].orderDetails[0].price").value(1000L))
-            .andExpect(jsonPath("$.data[0].orderDetails[0].quantity").value(1))
-            .andExpect(jsonPath("$.data[0].orderDetails[0].category").value("원두"))
-            .andExpect(jsonPath("$.data[0].orderDetails[1].price").value(2000L))
-            .andExpect(jsonPath("$.data[0].orderDetails[1].quantity").value(2))
-            .andExpect(jsonPath("$.data[0].orderDetails[1].category").value("음료"));
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("OK"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("OK"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].id").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderStatus").value("ORDERED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].email").value("test@gmail.com"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].address").value("서울시 강남구"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].postcode").value("125454"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails[0].price").value(1000L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails[0].quantity").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails[0].category").value("원두"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails[1].price").value(2000L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails[1].quantity").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderDetails[1].category").value("음료"))
+        }
 
+
+    companion object {
+        private fun generateFixedLengthString(length: Int): String {
+            return "나".repeat(length)
+        }
     }
-
-
-    private static String generateFixedLengthString(int length) {
-        return "나".repeat(length);
-    }
-
-
 }

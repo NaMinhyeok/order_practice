@@ -1,62 +1,49 @@
-package gc.cafe.domain.order;
+package gc.cafe.domain.order
 
-import gc.cafe.domain.BaseEntity;
-import gc.cafe.domain.orderproduct.OrderProduct;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import gc.cafe.domain.BaseEntity
+import gc.cafe.domain.orderproduct.OrderProduct
+import jakarta.persistence.*
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "orders")
 @Entity
-public class Order extends BaseEntity {
-
+class Order(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
-    private Long id;
+    val id: Long = 0,
+    @field:Column(nullable = false, length = 50)
+    var email: String,
 
-    @Column(nullable = false, length = 50)
-    private String email;
+    deliveryAddress: String,
+
+    postcode: String,
 
     @Embedded
-    private Address address;
+    val address: Address = Address(deliveryAddress, postcode),
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    var orderStatus: OrderStatus = OrderStatus.ORDERED,
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<OrderProduct> orderProducts = new ArrayList<>();
+    @OneToMany(mappedBy = "order", cascade = [CascadeType.REMOVE], orphanRemoval = true)
+    val orderProducts: MutableList<OrderProduct> = ArrayList()
 
-    @Builder
-    private Order(String email, String address, String postcode) {
-        this.email = email;
-        this.address = Address.builder()
-            .address(address)
-            .postcode(postcode)
-            .build();
-        this.orderStatus = OrderStatus.ORDERED;
+) : BaseEntity() {
+
+    fun updateStatus(orderStatus: OrderStatus) {
+        this.orderStatus = orderStatus
     }
 
-    public static Order create(String email, String address, String postcode) {
-        return Order.builder()
-            .email(email)
-            .address(address)
-            .postcode(postcode)
-            .build();
+    fun addOrderProduct(orderProduct: OrderProduct) {
+        orderProducts.add(orderProduct)
     }
 
-    public void updateStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
-    }
-
-    public void addOrderProduct(OrderProduct orderProduct) {
-        this.orderProducts.add(orderProduct);
+    companion object {
+        fun create(email: String, address: String, postcode: String): Order {
+            return Order(
+                email = email,
+                deliveryAddress = address,
+                postcode = postcode
+            )
+        }
     }
 }

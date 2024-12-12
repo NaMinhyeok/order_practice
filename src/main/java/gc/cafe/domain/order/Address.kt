@@ -1,25 +1,13 @@
-package gc.cafe.domain.order;
+package gc.cafe.domain.order
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
-public class Address {
-    @Column(nullable = false, length = 200)
-    private String address;
+class Address(
+    @field:Column(nullable = false, length = 200)
+    var address: String,
 
-    @Column(nullable = false, length = 20)
-    private String postcode;
-
-    @Builder
-    private Address(String address, String postcode) {
-        this.address = address;
-        this.postcode = postcode;
-    }
-}
+    @field:Column(nullable = false, length = 20)
+    var postcode: String
+)

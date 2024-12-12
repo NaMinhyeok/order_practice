@@ -4,10 +4,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.6"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
     id("com.epages.restdocs-api-spec") version "0.18.2"
-    id ("org.jetbrains.kotlin.jvm") version "2.0.21"
-    id ("org.jetbrains.kotlin.plugin.spring") version "2.0.21"
-    id ("org.jetbrains.kotlin.plugin.jpa") version "2.0.21"
-    id ("org.jetbrains.kotlin.plugin.lombok") version "2.0.21"
+    id ("org.jetbrains.kotlin.jvm") version "1.9.25"
+    id ("org.jetbrains.kotlin.plugin.spring") version "1.9.25"
+    id ("org.jetbrains.kotlin.plugin.jpa") version "1.9.25"
+    id ("org.jetbrains.kotlin.plugin.lombok") version "1.9.25"
     id ("io.freefair.lombok") version "8.10"
 }
 
@@ -44,6 +44,9 @@ dependencies {
     // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation ("org.jetbrains.kotlin:kotlin-reflect")
+    testImplementation ("org.jetbrains.kotlin:kotlin-reflect")
+
 
     // h2
     runtimeOnly("com.h2database:h2")

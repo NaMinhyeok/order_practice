@@ -1,37 +1,29 @@
-package gc.cafe.api;
+package gc.cafe.api
 
-import lombok.Getter;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus
 
-@Getter
-public class ApiResponse<T> {
+data class ApiResponse<T>(
+    val status: HttpStatus,
+    val message: String,
+    val data: T
+) {
+    val code = status.value()
 
-    private int code;
-    private HttpStatus status;
-    private String message;
-    private T data;
+    companion object {
+        fun <T> of(httpStatus: HttpStatus, message: String, data: T): ApiResponse<T> {
+            return ApiResponse(httpStatus, message, data)
+        }
 
-    public ApiResponse(HttpStatus status, String message, T data) {
-        this.code = status.value();
-        this.status = status;
-        this.message = message;
-        this.data = data;
+        fun <T> of(httpStatus: HttpStatus, data: T): ApiResponse<T> {
+            return of(httpStatus, httpStatus.name, data)
+        }
+
+        fun <T> ok(data: T): ApiResponse<T> {
+            return of(HttpStatus.OK, data)
+        }
+
+        fun <T> created(data: T): ApiResponse<T> {
+            return of(HttpStatus.CREATED, data)
+        }
     }
-
-    public static <T> ApiResponse<T> of(HttpStatus httpStatus, String message, T data) {
-        return new ApiResponse<>(httpStatus, message, data);
-    }
-
-    public static <T> ApiResponse<T> of(HttpStatus httpStatus, T data) {
-        return of(httpStatus, httpStatus.name(), data);
-    }
-
-    public static <T> ApiResponse<T> ok(T data) {
-        return of(HttpStatus.OK, data);
-    }
-
-    public static <T> ApiResponse<T> created(T data) {
-        return of(HttpStatus.CREATED, data);
-    }
-
 }

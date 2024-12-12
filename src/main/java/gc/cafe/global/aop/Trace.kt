@@ -1,11 +1,12 @@
-package gc.cafe.global.aop;
+package gc.cafe.global.aop
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Trace {
-}
+@Target(
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER,
+    AnnotationTarget.ANNOTATION_CLASS
+)
+@Retention(
+    AnnotationRetention.RUNTIME
+)
+annotation class Trace 

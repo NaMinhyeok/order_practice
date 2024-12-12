@@ -1,57 +1,56 @@
-package gc.cafe.config;
+package gc.cafe.config
 
-import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.*;
-import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
-
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
+import com.zaxxer.hikari.HikariDataSource
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.jdbc.DataSourceBuilder
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Profile
+import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy
+import javax.sql.DataSource
 
 @Profile("prod")
 @Configuration
-public class DataSourceConfig {
-
+class DataSourceConfig {
     @ConfigurationProperties(prefix = "spring.datasource.command.hikari")
-    @Bean(name = "commandDataSource")
-    public DataSource commandDataSource() {
+    @Bean(name = ["commandDataSource"])
+    fun commandDataSource(): DataSource {
         return DataSourceBuilder.create()
-            .type(HikariDataSource.class)
-            .build();
+            .type(HikariDataSource::class.java)
+            .build()
     }
 
     @ConfigurationProperties(prefix = "spring.datasource.query.hikari")
-    @Bean(name = "queryDataSource")
-    public DataSource queryDataSource() {
+    @Bean(name = ["queryDataSource"])
+    fun queryDataSource(): DataSource {
         return DataSourceBuilder.create()
-            .type(HikariDataSource.class)
-            .build();
+            .type(HikariDataSource::class.java)
+            .build()
     }
 
     @Bean
-    public DataSource routingDataSource(@Qualifier("commandDataSource") DataSource command,
-                                        @Qualifier("queryDataSource") DataSource query) {
+    fun routingDataSource(
+        @Qualifier("commandDataSource") command: DataSource,
+        @Qualifier("queryDataSource") query: DataSource
+    ): DataSource {
+        val routingDataSource = ReplicationRoutingDataSource()
 
-        ReplicationRoutingDataSource routingDataSource = new ReplicationRoutingDataSource();
+        val dataSourceMap: MutableMap<Any, Any> = HashMap()
 
-        Map<Object, Object> dataSourceMap = new HashMap<>();
+        dataSourceMap["command"] = command
+        dataSourceMap["query"] = query
 
-        dataSourceMap.put("command", command);
-        dataSourceMap.put("query", query);
+        routingDataSource.setTargetDataSources(dataSourceMap)
+        routingDataSource.setDefaultTargetDataSource(command)
 
-        routingDataSource.setTargetDataSources(dataSourceMap);
-        routingDataSource.setDefaultTargetDataSource(command);
-
-        return routingDataSource;
+        return routingDataSource
     }
 
     @Primary
     @Bean
-    public DataSource dataSource(DataSource routingDataSource) {
-        return new LazyConnectionDataSourceProxy(routingDataSource);
+    fun dataSource(routingDataSource: DataSource): DataSource {
+        return LazyConnectionDataSourceProxy(routingDataSource)
     }
-
 }

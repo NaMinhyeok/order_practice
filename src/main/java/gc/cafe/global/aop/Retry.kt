@@ -1,12 +1,7 @@
-package gc.cafe.global.aop;
+package gc.cafe.global.aop
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Retry {
-    int value() default 3;
-}
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+@Retention(
+    AnnotationRetention.RUNTIME
+)
+annotation class Retry(val value: Int = 3)

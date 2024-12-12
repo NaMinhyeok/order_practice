@@ -1,45 +1,29 @@
-package gc.cafe.api.controller.product.request;
+package gc.cafe.api.controller.product.request
 
-import gc.cafe.api.service.product.request.ProductUpdateServiceRequest;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
-import lombok.Builder;
-import lombok.Getter;
+import gc.cafe.api.service.product.request.ProductUpdateServiceRequest
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.Size
 
-@Getter
-public class ProductUpdateRequest {
-
+class ProductUpdateRequest constructor(
     @Size(max = 20, message = "상품명은 20자 이하여야 합니다.")
     @NotNull(message = "상품명은 필수입니다.")
-    private String name;
-
+    val name: String?,
     @Size(max = 50, message = "카테고리는 50자 이하여야 합니다.")
     @NotNull(message = "카테고리는 필수입니다.")
-    private String category;
-
-    @Positive(message = "가격은 양수이어야 합니다.")
-    @NotNull(message = "가격은 필수입니다.")
-    private Long price;
-
+    val category: String?,
+    @Positive(message = "가격은 양수이어야 합니다.") @NotNull(message = "가격은 필수입니다.")
+    val price: Long?,
     @Size(max = 500, message = "상품 설명은 500자 이하여야 합니다.")
     @NotNull(message = "상품 설명은 필수입니다.")
-    private String description;
-
-    @Builder
-    private ProductUpdateRequest(String name, String category, Long price, String description) {
-        this.name = name;
-        this.category = category;
-        this.price = price;
-        this.description = description;
-    }
-
-    public ProductUpdateServiceRequest toServiceRequest() {
-        return ProductUpdateServiceRequest.builder()
-            .name(name)
-            .category(category)
-            .price(price)
-            .description(description)
-            .build();
+    val description: String?
+) {
+    fun toServiceRequest(): ProductUpdateServiceRequest {
+        return ProductUpdateServiceRequest(
+            name = name!!,
+            category = category!!,
+            price = price!!,
+            description = description!!
+        )
     }
 }

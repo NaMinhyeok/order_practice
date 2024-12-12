@@ -1,317 +1,327 @@
-package gc.cafe.docs.order;
+package gc.cafe.docs.order
 
-import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
-import gc.cafe.api.controller.order.OrderController;
-import gc.cafe.api.controller.order.request.OrderCreateRequest;
-import gc.cafe.api.controller.order.request.OrderProductQuantity;
-import gc.cafe.api.service.order.OrderService;
-import gc.cafe.api.service.order.request.OrderCreateServiceRequest;
-import gc.cafe.api.service.order.response.OrderDetailResponse;
-import gc.cafe.api.service.order.response.OrderResponse;
-import gc.cafe.docs.RestDocsSupport;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
+import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document
+import gc.cafe.api.controller.order.OrderController
+import gc.cafe.api.controller.order.request.OrderCreateRequest
+import gc.cafe.api.controller.order.request.OrderProductQuantity
+import gc.cafe.api.service.order.OrderService
+import gc.cafe.api.service.order.request.OrderCreateServiceRequest
+import gc.cafe.api.service.order.response.OrderDetailResponse
+import gc.cafe.api.service.order.response.OrderResponse
+import gc.cafe.docs.RestDocsConfig
+import gc.cafe.docs.RestDocsSupport
+import gc.cafe.domain.order.OrderStatus
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.BDDMockito
+import org.mockito.BDDMockito.*
+import org.mockito.Mockito
+import org.springframework.http.MediaType
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders
+import org.springframework.restdocs.operation.preprocess.Preprocessors
+import org.springframework.restdocs.payload.JsonFieldType
+import org.springframework.restdocs.payload.PayloadDocumentation
+import org.springframework.restdocs.request.RequestDocumentation
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
-import java.util.List;
+class OrderControllerDocsTest : RestDocsSupport() {
+    private val orderService: OrderService = Mockito.mock(OrderService::class.java)
 
-import static gc.cafe.docs.RestDocsConfig.field;
-import static gc.cafe.domain.order.OrderStatus.DELIVERING;
-import static gc.cafe.domain.order.OrderStatus.ORDERED;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-public class OrderControllerDocsTest extends RestDocsSupport {
-
-    private final OrderService orderService = mock(OrderService.class);
-
-    @Override
-    protected Object initController() {
-        return new OrderController(orderService);
+    override fun initController(): Any? {
+        return OrderController(orderService)
     }
 
     @DisplayName("신규 주문을 생성하는 API")
     @Test
-    void createOrder() throws Exception {
+    @Throws(Exception::class)
+    fun createOrder() {
 
-        OrderCreateRequest request = OrderCreateRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductsQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(1L)
-                        .quantity(1)
-                        .build()
-                    ,
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
-                ))
-            .build();
-
-        given(orderService.createOrder(any(OrderCreateServiceRequest.class)))
-            .willReturn(
-                OrderResponse.builder()
-                    .id(1L)
-                    .orderStatus(ORDERED)
-                    .email("test@gmail.com")
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
-
-        mockMvc.perform(
-                post("/api/v1/orders")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)
-                    ))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andDo(MockMvcRestDocumentationWrapper.document("order-create",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                requestFields(
-                    fieldWithPath("email").type(JsonFieldType.STRING)
-                        .description("주문자 이메일")
-                        .attributes(field("constraints", "최대 50자"))
-                        .attributes(field("format", "XXXX@gamil.com 과 같은 이메일 형식")),
-                    fieldWithPath("address").type(JsonFieldType.STRING)
-                        .description("주문자 주소")
-                        .attributes(field("constraints", "최대 200자")),
-                    fieldWithPath("postcode").type(JsonFieldType.STRING)
-                        .description("주문자 우편번호")
-                        .attributes(field("constraints", "최대 20자")),
-                    fieldWithPath("orderProductsQuantity").type(JsonFieldType.ARRAY)
-                        .description("주문 상품 목록"),
-                    fieldWithPath("orderProductsQuantity[].productId").type(JsonFieldType.NUMBER)
-                        .description("상품 ID"),
-                    fieldWithPath("orderProductsQuantity[].quantity").type(JsonFieldType.NUMBER)
-                        .description("상품 수량")
+        val request = OrderCreateRequest(
+            "test@gamil.com",
+            "서울시 강남구",
+            "125454",
+            listOf(
+                OrderProductQuantity(
+                    1L,
+                    1
                 ),
-                responseFields(
-                    fieldWithPath("code").type(JsonFieldType.NUMBER)
-                        .description("코드"),
-                    fieldWithPath("status").type(JsonFieldType.STRING)
-                        .description("상태"),
-                    fieldWithPath("message").type(JsonFieldType.STRING)
-                        .description("메시지"),
-                    fieldWithPath("data").type(JsonFieldType.OBJECT)
-                        .description("응답 데이터"),
-                    fieldWithPath("data.id").type(JsonFieldType.NUMBER)
-                        .description("주문 ID"),
-                    fieldWithPath("data.email").type(JsonFieldType.STRING)
-                        .description("주문자 이메일"),
-                    fieldWithPath("data.address").type(JsonFieldType.STRING)
-                        .description("주문자 주소"),
-                    fieldWithPath("data.postcode").type(JsonFieldType.STRING)
-                        .description("주문자 우편번호"),
-                    fieldWithPath("data.orderStatus").type(JsonFieldType.STRING)
-                        .description("주문 상태"),
-                    fieldWithPath("data.orderDetails").type(JsonFieldType.ARRAY)
-                        .description("주문 상세"),
-                    fieldWithPath("data.orderDetails[].category").type(JsonFieldType.STRING)
-                        .description("주문한 상품의 카테고리"),
-                    fieldWithPath("data.orderDetails[].price").type(JsonFieldType.NUMBER)
-                        .description("주문한 상품의 가격"),
-                    fieldWithPath("data.orderDetails[].quantity").type(JsonFieldType.NUMBER)
-                        .description("주문한 상품의 수량")
+                OrderProductQuantity(
+                    2L,
+                    2
                 )
-            ));
+            )
+        )
+
+        given<OrderResponse>(
+            orderService.createOrder(
+                any<OrderCreateServiceRequest>(
+                    OrderCreateServiceRequest::class.java
+                )
+            )
+        )
+            .willReturn(
+                OrderResponse(
+                    1L,
+                    "test@gmail.com",
+                    "서울시 강남구",
+                    "125454",
+                    OrderStatus.ORDERED,
+                    listOf(
+                        OrderDetailResponse(
+                            "원두",
+                            1000L,
+                            1
+                        ),
+                        OrderDetailResponse(
+                            "음료",
+                            2000L,
+                            2
+                        )
+                    )
+                )
+            )
+
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.post("/api/v1/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)
+                )
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(
+                document(
+                    "order-create",
+                    Preprocessors.preprocessRequest(Preprocessors.prettyPrint()),
+                    Preprocessors.preprocessResponse(Preprocessors.prettyPrint()),
+                    PayloadDocumentation.requestFields(
+                        PayloadDocumentation.fieldWithPath("email").type(JsonFieldType.STRING)
+                            .description("주문자 이메일")
+                            .attributes(RestDocsConfig.field("constraints", "최대 50자"))
+                            .attributes(RestDocsConfig.field("format", "XXXX@gamil.com 과 같은 이메일 형식")),
+                        PayloadDocumentation.fieldWithPath("address").type(JsonFieldType.STRING)
+                            .description("주문자 주소")
+                            .attributes(RestDocsConfig.field("constraints", "최대 200자")),
+                        PayloadDocumentation.fieldWithPath("postcode").type(JsonFieldType.STRING)
+                            .description("주문자 우편번호")
+                            .attributes(RestDocsConfig.field("constraints", "최대 20자")),
+                        PayloadDocumentation.fieldWithPath("orderProductsQuantity").type(JsonFieldType.ARRAY)
+                            .description("주문 상품 목록"),
+                        PayloadDocumentation.fieldWithPath("orderProductsQuantity[].productId")
+                            .type(JsonFieldType.NUMBER)
+                            .description("상품 ID"),
+                        PayloadDocumentation.fieldWithPath("orderProductsQuantity[].quantity")
+                            .type(JsonFieldType.NUMBER)
+                            .description("상품 수량")
+                    ),
+                    PayloadDocumentation.responseFields(
+                        PayloadDocumentation.fieldWithPath("code").type(JsonFieldType.NUMBER)
+                            .description("코드"),
+                        PayloadDocumentation.fieldWithPath("status").type(JsonFieldType.STRING)
+                            .description("상태"),
+                        PayloadDocumentation.fieldWithPath("message").type(JsonFieldType.STRING)
+                            .description("메시지"),
+                        PayloadDocumentation.fieldWithPath("data").type(JsonFieldType.OBJECT)
+                            .description("응답 데이터"),
+                        PayloadDocumentation.fieldWithPath("data.id").type(JsonFieldType.NUMBER)
+                            .description("주문 ID"),
+                        PayloadDocumentation.fieldWithPath("data.email").type(JsonFieldType.STRING)
+                            .description("주문자 이메일"),
+                        PayloadDocumentation.fieldWithPath("data.address").type(JsonFieldType.STRING)
+                            .description("주문자 주소"),
+                        PayloadDocumentation.fieldWithPath("data.postcode").type(JsonFieldType.STRING)
+                            .description("주문자 우편번호"),
+                        PayloadDocumentation.fieldWithPath("data.orderStatus").type(JsonFieldType.STRING)
+                            .description("주문 상태"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails").type(JsonFieldType.ARRAY)
+                            .description("주문 상세"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails[].category").type(JsonFieldType.STRING)
+                            .description("주문한 상품의 카테고리"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails[].price").type(JsonFieldType.NUMBER)
+                            .description("주문한 상품의 가격"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails[].quantity").type(JsonFieldType.NUMBER)
+                            .description("주문한 상품의 수량")
+                    )
+                )
+            )
     }
 
-    @DisplayName("주문을 단권 조회하는 API")
+    @Throws(Exception::class)
     @Test
-    void getOrder() throws Exception {
-
-        Long id = 1L;
+    @DisplayName("주문을 단권 조회하는 API")
+    fun getOrder() {
+        val id = 1L
 
         given(orderService.getOrder(id))
             .willReturn(
-                OrderResponse.builder()
-                    .id(id)
-                    .orderStatus(ORDERED)
-                    .email("test@gmail.com")
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build());
-
-        mockMvc.perform(
-                get("/api/v1/orders/{id}", id)
-                    .contentType(MediaType.APPLICATION_JSON)
+                OrderResponse(
+                    id,
+                    "test@gmail.com",
+                    "서울시 강남구",
+                    "125454",
+                    OrderStatus.ORDERED,
+                    listOf(
+                        OrderDetailResponse(
+                            "원두",
+                            1000L,
+                            1
+                        ),
+                        OrderDetailResponse(
+                            "음료",
+                            2000L,
+                            2
+                        )
+                    )
+                )
             )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andDo(MockMvcRestDocumentationWrapper.document("order-get",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                pathParameters(
-                    parameterWithName("id").description("주문 ID")
-                ),
-                responseFields(
-                    fieldWithPath("code").type(JsonFieldType.NUMBER)
-                        .description("코드"),
-                    fieldWithPath("status").type(JsonFieldType.STRING)
-                        .description("상태"),
-                    fieldWithPath("message").type(JsonFieldType.STRING)
-                        .description("메시지"),
-                    fieldWithPath("data").type(JsonFieldType.OBJECT)
-                        .description("응답 데이터"),
-                    fieldWithPath("data.id").type(JsonFieldType.NUMBER)
-                        .description("주문 ID"),
-                    fieldWithPath("data.email").type(JsonFieldType.STRING)
-                        .description("주문자 이메일"),
-                    fieldWithPath("data.address").type(JsonFieldType.STRING)
-                        .description("주문자 주소"),
-                    fieldWithPath("data.postcode").type(JsonFieldType.STRING)
-                        .description("주문자 우편번호"),
-                    fieldWithPath("data.orderStatus").type(JsonFieldType.STRING)
-                        .description("주문 상태"),
-                    fieldWithPath("data.orderDetails").type(JsonFieldType.ARRAY)
-                        .description("주문 상세"),
-                    fieldWithPath("data.orderDetails[].category").type(JsonFieldType.STRING)
-                        .description("주문한 상품의 카테고리"),
-                    fieldWithPath("data.orderDetails[].price").type(JsonFieldType.NUMBER)
-                        .description("주문한 상품의 가격"),
-                    fieldWithPath("data.orderDetails[].quantity").type(JsonFieldType.NUMBER)
-                        .description("주문한 상품의 수량")
-                ))
-            );
 
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.get("/api/v1/orders/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(
+                document(
+                    "order-get",
+                    Preprocessors.preprocessRequest(Preprocessors.prettyPrint()),
+                    Preprocessors.preprocessResponse(Preprocessors.prettyPrint()),
+                    RequestDocumentation.pathParameters(
+                        RequestDocumentation.parameterWithName("id").description("주문 ID")
+                    ),
+                    PayloadDocumentation.responseFields(
+                        PayloadDocumentation.fieldWithPath("code").type(JsonFieldType.NUMBER)
+                            .description("코드"),
+                        PayloadDocumentation.fieldWithPath("status").type(JsonFieldType.STRING)
+                            .description("상태"),
+                        PayloadDocumentation.fieldWithPath("message").type(JsonFieldType.STRING)
+                            .description("메시지"),
+                        PayloadDocumentation.fieldWithPath("data").type(JsonFieldType.OBJECT)
+                            .description("응답 데이터"),
+                        PayloadDocumentation.fieldWithPath("data.id").type(JsonFieldType.NUMBER)
+                            .description("주문 ID"),
+                        PayloadDocumentation.fieldWithPath("data.email").type(JsonFieldType.STRING)
+                            .description("주문자 이메일"),
+                        PayloadDocumentation.fieldWithPath("data.address").type(JsonFieldType.STRING)
+                            .description("주문자 주소"),
+                        PayloadDocumentation.fieldWithPath("data.postcode").type(JsonFieldType.STRING)
+                            .description("주문자 우편번호"),
+                        PayloadDocumentation.fieldWithPath("data.orderStatus").type(JsonFieldType.STRING)
+                            .description("주문 상태"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails").type(JsonFieldType.ARRAY)
+                            .description("주문 상세"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails[].category")
+                            .type(JsonFieldType.STRING)
+                            .description("주문한 상품의 카테고리"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails[].price").type(JsonFieldType.NUMBER)
+                            .description("주문한 상품의 가격"),
+                        PayloadDocumentation.fieldWithPath("data.orderDetails[].quantity")
+                            .type(JsonFieldType.NUMBER)
+                            .description("주문한 상품의 수량")
+                    )
+                )
+            )
     }
 
-    @DisplayName("이메일로 주문목록을 조회하는 API")
+    @Throws(Exception::class)
     @Test
-    void getOrdersByEmail() throws Exception {
-        String email = "test@gmail.com";
-
+    @DisplayName("이메일로 주문목록을 조회하는 API")
+    fun getOrdersByEmail() {
+        val email = "test@gmail.com"
 
         given(orderService.getOrdersByEmail(email))
-            .willReturn(List.of(
-                OrderResponse.builder()
-                    .id(1L)
-                    .email(email)
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderStatus(DELIVERING)
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(1)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(2)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build()
-                ,
-                OrderResponse.builder()
-                    .id(2L)
-                    .email(email)
-                    .address("서울시 강남구")
-                    .postcode("125454")
-                    .orderStatus(ORDERED)
-                    .orderDetails(
-                        List.of(
-                            OrderDetailResponse.builder()
-                                .price(1000L)
-                                .quantity(6)
-                                .category("원두")
-                                .build()
-                            ,
-                            OrderDetailResponse.builder()
-                                .price(2000L)
-                                .quantity(4)
-                                .category("음료")
-                                .build()
-                        ))
-                    .build()
-            ));
-
-        mockMvc.perform(
-                get("/api/v1/orders/")
-                    .param("email", email)
-                    .contentType(MediaType.APPLICATION_JSON)
+            .willReturn(
+                listOf(
+                    OrderResponse(
+                        1L,
+                        email,
+                        "서울시 강남구",
+                        "125454",
+                        OrderStatus.ORDERED,
+                        listOf(
+                            OrderDetailResponse(
+                                "원두",
+                                1000L,
+                                1
+                            ),
+                            OrderDetailResponse(
+                                "음료",
+                                2000L,
+                                2
+                            )
+                        )
+                    ),
+                    OrderResponse(
+                        2L,
+                        email,
+                        "서울시 강남구",
+                        "125454",
+                        OrderStatus.ORDERED,
+                        listOf(
+                            OrderDetailResponse(
+                                "원두",
+                                1000L,
+                                6
+                            ),
+                            OrderDetailResponse(
+                                "음료",
+                                2000L,
+                                2
+                            )
+                        )
+                    ),
+                )
             )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andDo(MockMvcRestDocumentationWrapper.document("orders-get-by-email",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                queryParameters(
-                    parameterWithName("email").description("주문자 이메일")
-                ),
-                responseFields(
-                    fieldWithPath("code").type(JsonFieldType.NUMBER)
-                        .description("코드"),
-                    fieldWithPath("status").type(JsonFieldType.STRING)
-                        .description("상태"),
-                    fieldWithPath("message").type(JsonFieldType.STRING)
-                        .description("메시지"),
-                    fieldWithPath("data").type(JsonFieldType.ARRAY)
-                        .description("응답 데이터"),
-                    fieldWithPath("data[].id").type(JsonFieldType.NUMBER)
-                        .description("주문 ID"),
-                    fieldWithPath("data[].email").type(JsonFieldType.STRING)
-                        .description("주문자 이메일"),
-                    fieldWithPath("data[].address").type(JsonFieldType.STRING)
-                        .description("주문자 주소"),
-                    fieldWithPath("data[].postcode").type(JsonFieldType.STRING)
-                        .description("주문자 우편번호"),
-                    fieldWithPath("data[].orderStatus").type(JsonFieldType.STRING)
-                        .description("주문 상태"),
-                    fieldWithPath("data[].orderDetails").type(JsonFieldType.ARRAY)
-                        .description("주문 상세"),
-                    fieldWithPath("data[].orderDetails[].category").type(JsonFieldType.STRING)
-                        .description("주문한 상품의 카테고리"),
-                    fieldWithPath("data[].orderDetails[].price").type(JsonFieldType.NUMBER)
-                        .description("주문한 상품의 가격"),
-                    fieldWithPath("data[].orderDetails[].quantity").type(JsonFieldType.NUMBER)
-                        .description("주문한 상품의 수량")
-                ))
-            );
+
+        mockMvc!!.perform(
+            RestDocumentationRequestBuilders.get("/api/v1/orders/")
+                .param("email", email)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andDo(
+                document(
+                    "orders-get-by-email",
+                    Preprocessors.preprocessRequest(Preprocessors.prettyPrint()),
+                    Preprocessors.preprocessResponse(Preprocessors.prettyPrint()),
+                    RequestDocumentation.queryParameters(
+                        RequestDocumentation.parameterWithName("email").description("주문자 이메일")
+                    ),
+                    PayloadDocumentation.responseFields(
+                        PayloadDocumentation.fieldWithPath("code").type(JsonFieldType.NUMBER)
+                            .description("코드"),
+                        PayloadDocumentation.fieldWithPath("status").type(JsonFieldType.STRING)
+                            .description("상태"),
+                        PayloadDocumentation.fieldWithPath("message").type(JsonFieldType.STRING)
+                            .description("메시지"),
+                        PayloadDocumentation.fieldWithPath("data").type(JsonFieldType.ARRAY)
+                            .description("응답 데이터"),
+                        PayloadDocumentation.fieldWithPath("data[].id").type(JsonFieldType.NUMBER)
+                            .description("주문 ID"),
+                        PayloadDocumentation.fieldWithPath("data[].email").type(JsonFieldType.STRING)
+                            .description("주문자 이메일"),
+                        PayloadDocumentation.fieldWithPath("data[].address").type(JsonFieldType.STRING)
+                            .description("주문자 주소"),
+                        PayloadDocumentation.fieldWithPath("data[].postcode").type(JsonFieldType.STRING)
+                            .description("주문자 우편번호"),
+                        PayloadDocumentation.fieldWithPath("data[].orderStatus").type(JsonFieldType.STRING)
+                            .description("주문 상태"),
+                        PayloadDocumentation.fieldWithPath("data[].orderDetails").type(JsonFieldType.ARRAY)
+                            .description("주문 상세"),
+                        PayloadDocumentation.fieldWithPath("data[].orderDetails[].category")
+                            .type(JsonFieldType.STRING)
+                            .description("주문한 상품의 카테고리"),
+                        PayloadDocumentation.fieldWithPath("data[].orderDetails[].price").type(JsonFieldType.NUMBER)
+                            .description("주문한 상품의 가격"),
+                        PayloadDocumentation.fieldWithPath("data[].orderDetails[].quantity")
+                            .type(JsonFieldType.NUMBER)
+                            .description("주문한 상품의 수량")
+                    )
+                )
+            )
     }
 }

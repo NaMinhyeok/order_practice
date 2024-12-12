@@ -1,176 +1,155 @@
-package gc.cafe.api.service.product;
+package gc.cafe.api.service.product
 
-import gc.cafe.IntegrationTestSupport;
-import gc.cafe.api.service.product.request.ProductCreateServiceRequest;
-import gc.cafe.api.service.product.request.ProductSearchServiceRequest;
-import gc.cafe.api.service.product.request.ProductUpdateServiceRequest;
-import gc.cafe.api.service.product.response.ProductResponse;
-import gc.cafe.domain.product.Product;
-import gc.cafe.domain.product.ProductRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.*;
+import gc.cafe.IntegrationTestSupport
+import gc.cafe.api.service.product.request.ProductCreateServiceRequest
+import gc.cafe.api.service.product.request.ProductUpdateServiceRequest
+import gc.cafe.domain.product.Product
+import gc.cafe.domain.product.ProductRepository
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.annotation.Transactional
 
 @Transactional
-class ProductServiceImplTest extends IntegrationTestSupport {
+internal class ProductServiceImplTest : IntegrationTestSupport() {
+    @Autowired
+    private val productService: ProductServiceImpl? = null
 
     @Autowired
-    private ProductServiceImpl productService;
-
-    @Autowired
-    private ProductRepository productRepository;
+    private val productRepository: ProductRepository? = null
 
     @DisplayName("신규 상품을 등록한다.")
     @Test
-    void createProductTest() {
+    fun createProductTest() {
         //given
-        ProductCreateServiceRequest request = ProductCreateServiceRequest.builder()
-            .name("스타벅스 원두")
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
+        val request: ProductCreateServiceRequest =         ProductCreateServiceRequest("스타벅스 원두", "원두", 50000L, "에티오피아산")
+
 
         //when
-        ProductResponse productResponse = productService.createProduct(request);
+        val productResponse = productService!!.createProduct(request)
 
-        List<Product> products = productRepository.findAll();
+        val products = productRepository!!.findAll()
 
         //then
-        assertThat(products).hasSize(1)
+        Assertions.assertThat(products).hasSize(1)
             .extracting("id", "name", "category", "price", "description")
             .containsExactlyInAnyOrder(
-                tuple(products.get(0).getId(), "스타벅스 원두", "원두", 50000L, "에티오피아산")
-            );
+                Assertions.tuple(products[0].id, "스타벅스 원두", "원두", 50000L, "에티오피아산")
+            )
 
-        assertThat(productResponse)
+        Assertions.assertThat(productResponse)
             .extracting("id", "name", "category", "price", "description")
-            .containsExactlyInAnyOrder(products.get(0).getId(), "스타벅스 원두", "원두", 50000L, "에티오피아산");
-
+            .containsExactlyInAnyOrder(products[0].id, "스타벅스 원두", "원두", 50000L, "에티오피아산")
     }
 
+    @Test
     @DisplayName("상품 ID를 통해 상품에 대한 상세정보를 조회한다.")
+    fun getProductByProductId() {
+            //given
+            val product = createProduct("스타벅스 원두", "원두", 50000L, "에티오피아산")
+
+            val savedProduct =
+                productRepository!!.save(product)
+
+            //when
+            val productResponse = productService!!.getProduct(savedProduct.id)
+
+            //then
+            Assertions.assertThat(productResponse)
+                .extracting("id", "name", "category", "price", "description")
+                .containsExactlyInAnyOrder(savedProduct.id, "스타벅스 원두", "원두", 50000L, "에티오피아산")
+        }
+
     @Test
-    void getProductByProductId() {
-        //given
-        Product product = createProduct("스타벅스 원두", "원두", 50000L, "에티오피아산");
-
-        Product savedProduct = productRepository.save(product);
-
-        //when
-        ProductResponse productResponse = productService.getProduct(savedProduct.getId());
-
-        //then
-        assertThat(productResponse)
-            .extracting("id", "name", "category", "price", "description")
-            .containsExactlyInAnyOrder(savedProduct.getId(), "스타벅스 원두", "원두", 50000L, "에티오피아산");
-
-    }
-
     @DisplayName("상품 ID를 통해 상품에 대한 상세정보를 조회 할 때 해당 ID의 상품이 존재하지 않을 때 상품을 조회 할 수 없다.")
-    @Test
-    void getProductByProductIdWhenProductIsNull() {
-        //given
-        Long productId = 1L;
+    fun getProductByProductIdWhenProductIsNull() {
+            //given
+            val productId = 1L
 
-        //when
-        //then
-        assertThatThrownBy(() -> productService.getProduct(productId))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("해당 id : " + productId + "를 가진 상품을 찾을 수 없습니다.");
-
-    }
+            //when
+            //then
+            Assertions.assertThatThrownBy {
+                productService!!.getProduct(
+                    productId
+                )
+            }
+                .isInstanceOf(IllegalArgumentException::class.java)
+                .hasMessage("해당 id : " + productId + "를 가진 상품을 찾을 수 없습니다.")
+        }
 
     @DisplayName("상품 ID를 통해 해당 상품을 삭제 할 수 있다.")
     @Test
-    void deleteProductByProductId() {
+    fun deleteProductByProductId() {
         //given=
-        Product product = createProduct("스타벅스 원두", "원두", 50000L, "에티오피아산");
+        val product = createProduct("스타벅스 원두", "원두", 50000L, "에티오피아산")
 
-        Product savedProduct = productRepository.save(product);
+        val savedProduct = productRepository!!.save(product)
 
         //when
-        Long deletedProductId = productService.deleteProduct(savedProduct.getId());
-        List<Product> products = productRepository.findAll();
+        val deletedProductId = productService!!.deleteProduct(savedProduct.id)
+        val products = productRepository.findAll()
 
         //then
-        assertThat(products).hasSize(0);
-        assertThat(deletedProductId).isEqualTo(savedProduct.getId());
-
+        Assertions.assertThat(products).hasSize(0)
+        Assertions.assertThat(deletedProductId).isEqualTo(savedProduct.id)
     }
 
     @DisplayName("상품 ID를 통해 해당 상품을 삭제 할 때 해당 상품이 존재하지 않으면 상품을 삭제 할 수 없다.")
     @Test
-    void deleteProductByProductIdWhenProductIsNull() {
+    fun deleteProductByProductIdWhenProductIsNull() {
         //given
-        Long productId = 1L;
+        val productId = 1L
 
         //when
         //then
-        assertThatThrownBy(() -> productService.deleteProduct(productId))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("해당 id : " + productId + "를 가진 상품을 찾을 수 없습니다.");
+        Assertions.assertThatThrownBy { productService!!.deleteProduct(productId) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("해당 id : " + productId + "를 가진 상품을 찾을 수 없습니다.")
     }
 
     @DisplayName("상품 ID를 통해 해당 상품의 정보를 수정 할 수 있다.")
     @Test
-    void updateProductByProductId() {
+    fun updateProductByProductId() {
         //given
-        Product product = createProduct("스타벅스 원두", "원두", 50000L, "에티오피아산");
+        val product = createProduct("스타벅스 원두", "원두", 50000L, "에티오피아산")
 
-        Product savedProduct = productRepository.save(product);
+        val savedProduct = productRepository!!.save(product)
 
-        ProductUpdateServiceRequest request = ProductUpdateServiceRequest.builder()
-            .name("이디야 커피")
-            .category("커피")
-            .price(40000L)
-            .description("국산")
-            .build();
+        val request: ProductUpdateServiceRequest =         ProductUpdateServiceRequest("이디야 커피", "커피", 40000L, "국산")
+
 
         //when
-        ProductResponse response = productService.updateProduct(savedProduct.getId(), request);
+        val response = productService!!.updateProduct(savedProduct.id, request)
 
         //then
-        assertThat(response)
+        Assertions.assertThat(response)
             .extracting("id", "name", "category", "price", "description")
-            .containsExactlyInAnyOrder(savedProduct.getId(), "이디야 커피", "커피", 40000L, "국산");
+            .containsExactlyInAnyOrder(savedProduct.id, "이디야 커피", "커피", 40000L, "국산")
     }
 
     @DisplayName("상품 ID를 통해 해당 상품의 정보를 수정 할 때 해당 상품이 존재하지 않으면 상품을 삭제 할 수 없다.")
     @Test
-    void updateProductByProductIdWhenProductIsNull() {
+    fun updateProductByProductIdWhenProductIsNull() {
         //given
-        Long productId = 1L;
+        val productId = 1L
 
-        ProductUpdateServiceRequest request = ProductUpdateServiceRequest.builder()
-            .name("이디야 커피")
-            .category("커피")
-            .price(40000L)
-            .description("국산")
-            .build();
+        val request: ProductUpdateServiceRequest =         ProductUpdateServiceRequest("이디야 커피", "커피", 40000L, "국산")
+
 
         //when
         //then
-        assertThatThrownBy(() -> productService.updateProduct(productId, request))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("해당 id : " + productId + "를 가진 상품을 찾을 수 없습니다.");
+        Assertions.assertThatThrownBy { productService!!.updateProduct(productId, request) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("해당 id : " + productId + "를 가진 상품을 찾을 수 없습니다.")
     }
 
-    private Product createProduct(String name, String category, Long price, String description) {
-        return Product.builder()
-            .name(name)
-            .category(category)
-            .price(price)
-            .description(description)
-            .build();
+    private fun createProduct(name: String, category: String, price: Long, description: String): Product {
+        return Product(
+            name = name,
+            category = category,
+            price = price,
+            description = description
+        )
     }
-
 }

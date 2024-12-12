@@ -1,50 +1,43 @@
-package gc.cafe.domain.orderproduct;
+package gc.cafe.domain.orderproduct
 
-import gc.cafe.domain.BaseEntity;
-import gc.cafe.domain.order.Order;
-import gc.cafe.domain.product.Product;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import gc.cafe.domain.BaseEntity
+import gc.cafe.domain.order.Order
+import gc.cafe.domain.product.Product
+import jakarta.persistence.*
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 @Entity
 @Table(name = "order_items")
-public class OrderProduct extends BaseEntity {
-
+class OrderProduct(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_item_id")
-    private Long id;
+    val id: Long = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id",nullable = false)
-    private Order order;
+    @field:JoinColumn(name = "order_id", nullable = false)
+    @field:ManyToOne(fetch = FetchType.LAZY)
+    val order: Order,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id",nullable = false)
-    private Product product;
+    @field:JoinColumn(name = "product_id", nullable = false)
+    @field:ManyToOne(fetch = FetchType.LAZY)
+    val product: Product,
 
-    @Column(nullable = false)
-    private int quantity;
+    @field:Column(nullable = false)
+    var quantity: Int
+) : BaseEntity() {
 
-    @Builder
-    private OrderProduct(Order order, Product product, int quantity) {
-        this.order = order;
-        this.product = product;
-        this.quantity = quantity;
-        order.addOrderProduct(this);
+    init {
+        order.addOrderProduct(this)
     }
 
-    public static OrderProduct create(Order order, Product product, int quantity) {
-        return OrderProduct.builder()
-            .order(order)
-            .product(product)
-            .quantity(quantity)
-            .build();
+    companion object {
+        @JvmStatic
+        fun create(order: Order, product: Product, quantity: Int): OrderProduct {
+            return OrderProduct(
+                order = order,
+                product = product,
+                quantity = quantity
+            )
+        }
     }
-
 }

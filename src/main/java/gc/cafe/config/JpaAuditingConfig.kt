@@ -1,9 +1,8 @@
-package gc.cafe.config;
+package gc.cafe.config
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.context.annotation.Configuration
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 
 @EnableJpaAuditing
 @Configuration
-public class JpaAuditingConfig {
-}
+class JpaAuditingConfig 

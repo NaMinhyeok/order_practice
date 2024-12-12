@@ -1,14 +1,11 @@
-package gc.cafe.domain.order;
+package gc.cafe.domain.order
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+interface OrderRepository : JpaRepository<Order, Long> {
+    fun findByEmail(email: String?): List<Order>
 
-    List<Order> findByEmail(String email);
-
-    List<Order> findByOrderStatus(OrderStatus orderStatus);
+    fun findByOrderStatus(orderStatus: OrderStatus?): List<Order>
 }

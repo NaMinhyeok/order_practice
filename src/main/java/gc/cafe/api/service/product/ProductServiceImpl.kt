@@ -1,61 +1,45 @@
-package gc.cafe.api.service.product;
+package gc.cafe.api.service.product
 
-import gc.cafe.api.service.product.request.ProductCreateServiceRequest;
-import gc.cafe.api.service.product.request.ProductSearchServiceRequest;
-import gc.cafe.api.service.product.request.ProductUpdateServiceRequest;
-import gc.cafe.api.service.product.response.ProductResponse;
-import gc.cafe.domain.product.Product;
-import gc.cafe.domain.product.ProductRepository;
-import gc.cafe.global.aop.Trace;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import gc.cafe.api.service.product.request.ProductCreateServiceRequest
+import gc.cafe.api.service.product.request.ProductUpdateServiceRequest
+import gc.cafe.api.service.product.response.ProductResponse
+import gc.cafe.domain.product.Product
+import gc.cafe.domain.product.ProductRepository
+import gc.cafe.global.aop.Trace
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
-import java.util.List;
-
-@RequiredArgsConstructor
 @Transactional
 @Service
-public class ProductServiceImpl implements ProductService {
-
-    private final ProductRepository productRepository;
-
-    private final int PAGE_SIZE = 10;
+class ProductServiceImpl(private val productRepository: ProductRepository) : ProductService {
 
     @Trace
-    @Override
-    public ProductResponse createProduct(ProductCreateServiceRequest request) {
-        Product saveProduct = productRepository.save(request.toEntity());
-        return ProductResponse.of(saveProduct);
+    override fun createProduct(request: ProductCreateServiceRequest): ProductResponse {
+        val saveProduct = productRepository.save(request.toEntity())
+        return ProductResponse.of(saveProduct)
     }
 
     @Trace
-    @Override
-    public Long deleteProduct(Long id) {
-        Product product = getProductById(id);
-        productRepository.delete(product);
-        return id;
+    override fun deleteProduct(id: Long): Long {
+        val product = getProductById(id)
+        productRepository.delete(product)
+        return id
     }
 
-    @Override
-    public ProductResponse updateProduct(Long id, ProductUpdateServiceRequest request) {
-        Product product = getProductById(id);
-        product.updateProduct(request.getName(), request.getCategory(), request.getPrice(), request.getDescription());
-        return ProductResponse.of(product);
+    override fun updateProduct(id: Long, request: ProductUpdateServiceRequest): ProductResponse {
+        val product = getProductById(id)
+        product.updateProduct(request.name, request.category, request.price, request.description)
+        return ProductResponse.of(product)
     }
 
     @Transactional(readOnly = true)
-    @Override
-    public ProductResponse getProduct(Long id) {
-        Product product = getProductById(id);
-        return ProductResponse.of(product);
+    override fun getProduct(id: Long): ProductResponse {
+        val product = getProductById(id)
+        return ProductResponse.of(product)
     }
 
-    private Product getProductById(Long id) {
+    private fun getProductById(id: Long): Product {
         return productRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("해당 id : " + id + "를 가진 상품을 찾을 수 없습니다."));
+            .orElseThrow { IllegalArgumentException("해당 id : " + id + "를 가진 상품을 찾을 수 없습니다.") }
     }
 }

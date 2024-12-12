@@ -1,8 +1,7 @@
-package gc.cafe.domain.orderproduct;
+package gc.cafe.domain.orderproduct
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 
 @Repository
-public interface OrderProductRepository extends JpaRepository<OrderProduct, Long> {
-}
+interface OrderProductRepository : JpaRepository<OrderProduct, Long>

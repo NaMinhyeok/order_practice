@@ -1,29 +1,31 @@
-package gc.cafe.global.aop;
+package gc.cafe.global.aop
 
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.ProceedingJoinPoint
+import org.aspectj.lang.annotation.Around
+import org.aspectj.lang.annotation.Aspect
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-@Slf4j
 @Aspect
-public class RetryAspect {
+class RetryAspect {
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
+
     @Around("@annotation(retry)")
-    public Object doRetry(ProceedingJoinPoint joinPoint, Retry retry) throws Throwable {
+    @Throws(Throwable::class)
+    fun doRetry(joinPoint: ProceedingJoinPoint, retry: Retry): Any {
+        log.info("[retry] {} retry={}", joinPoint.signature, retry)
 
-        log.info("[retry] {} retry={}", joinPoint.getSignature(), retry);
+        val maxRetry = retry.value
+        var exceptionHolder: Exception? = null
 
-        int maxRetry = retry.value();
-        Exception exceptionHolder = null;
-
-        for (int retryCount = 1; retryCount <= maxRetry; retryCount++) {
+        for (retryCount in 1..maxRetry) {
             try {
-                log.info("[RETRY] 시도횟수/전체 시도 가능 횟수={}/{}", retryCount, maxRetry);
-                return joinPoint.proceed();
-            } catch (Exception e) {
-                exceptionHolder = e;
+                log.info("[RETRY] 시도횟수/전체 시도 가능 횟수={}/{}", retryCount, maxRetry)
+                return joinPoint.proceed()
+            } catch (e: Exception) {
+                exceptionHolder = e
             }
         }
-        throw exceptionHolder;
+        throw exceptionHolder!!
     }
 }

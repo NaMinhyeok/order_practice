@@ -1,341 +1,304 @@
-package gc.cafe.api.service.order;
+package gc.cafe.api.service.order
 
-import gc.cafe.IntegrationTestSupport;
-import gc.cafe.api.controller.order.request.OrderProductQuantity;
-import gc.cafe.api.service.order.request.OrderCreateServiceRequest;
-import gc.cafe.api.service.order.response.OrderResponse;
-import gc.cafe.config.AsyncTestConfig;
-import gc.cafe.domain.order.Order;
-import gc.cafe.domain.order.OrderRepository;
-import gc.cafe.domain.orderproduct.OrderProduct;
-import gc.cafe.domain.orderproduct.OrderProductRepository;
-import gc.cafe.domain.product.Product;
-import gc.cafe.domain.product.ProductRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
+import gc.cafe.IntegrationTestSupport
+import gc.cafe.api.controller.order.request.OrderProductQuantity
+import gc.cafe.api.service.order.request.OrderCreateServiceRequest
+import gc.cafe.config.AsyncTestConfig
+import gc.cafe.domain.order.Order
+import gc.cafe.domain.order.OrderRepository
+import gc.cafe.domain.order.OrderStatus
+import gc.cafe.domain.orderproduct.OrderProduct
+import gc.cafe.domain.orderproduct.OrderProductRepository
+import gc.cafe.domain.product.Product
+import gc.cafe.domain.product.ProductRepository
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.transaction.annotation.Transactional
+import java.util.List
 
-import java.util.List;
-
-import static gc.cafe.domain.order.OrderStatus.DELIVERING;
-import static gc.cafe.domain.order.OrderStatus.ORDERED;
-import static org.assertj.core.api.Assertions.*;
-
-@ContextConfiguration(classes = AsyncTestConfig.class)
+@ContextConfiguration(classes = [AsyncTestConfig::class])
 @Transactional
-class OrderServiceImplTest extends IntegrationTestSupport {
+internal class OrderServiceImplTest : IntegrationTestSupport() {
+    @Autowired
+    private val orderService: OrderServiceImpl? = null
 
     @Autowired
-    private OrderServiceImpl orderService;
+    private val orderRepository: OrderRepository? = null
 
     @Autowired
-    private OrderRepository orderRepository;
+    private val productRepository: ProductRepository? = null
 
     @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private OrderProductRepository orderProductRepository;
+    private val orderProductRepository: OrderProductRepository? = null
 
 
     @DisplayName("상품을 주문한다.")
     @Test
-    void createOrder() {
+    fun createOrder() {
         //given
-        Product product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산");
-        Product product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소");
+        val product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산")
+        val product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소")
 
-        List<Product> givenProducts = productRepository.saveAll(List.of(product1, product2));
+        val givenProducts = productRepository!!.saveAll(List.of(product1, product2))
 
-        OrderCreateServiceRequest request = OrderCreateServiceRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(givenProducts.get(0).getId())
-                        .quantity(1)
-                        .build(),
-                    OrderProductQuantity.builder()
-                        .productId(givenProducts.get(1).getId())
-                        .quantity(2)
-                        .build()
+        val request = OrderCreateServiceRequest(
+            email = "test@gmail.com",
+            address = "서울시 강남구",
+            postcode = "125454",
+            orderProductQuantity = List.of(
+                OrderProductQuantity(
+                    productId = givenProducts[0].id,
+                    quantity = 1
+                ),
+                OrderProductQuantity(
+                    productId = givenProducts[1].id,
+                    quantity = 2
                 )
             )
-            .build();
+        )
 
         //when
-        OrderResponse response = orderService.createOrder(request);
+        val response = orderService!!.createOrder(request)
 
         //then
-        List<Order> orders = orderRepository.findAll();
-        List<OrderProduct> orderProducts = orderProductRepository.findAll();
+        val orders = orderRepository!!.findAll()
+        val orderProducts = orderProductRepository!!.findAll()
 
-        assertThat(orders).hasSize(1)
+        Assertions.assertThat(orders).hasSize(1)
             .extracting("id", "email", "address.address", "address.postcode", "orderStatus")
             .containsExactlyInAnyOrder(
-                tuple(orders.get(0).getId(), "test@gmail.com", "서울시 강남구", "125454", ORDERED)
-            );
+                Assertions.tuple(orders[0].id, "test@gmail.com", "서울시 강남구", "125454", OrderStatus.ORDERED)
+            )
 
-        assertThat(orderProducts).hasSize(2)
+        Assertions.assertThat(orderProducts).hasSize(2)
             .extracting("order.id", "product.id", "quantity")
             .containsExactlyInAnyOrder(
-                tuple(orders.get(0).getId(), product1.getId(), 1),
-                tuple(orders.get(0).getId(), product2.getId(), 2)
-            );
+                Assertions.tuple(orders[0].id, product1.id, 1),
+                Assertions.tuple(orders[0].id, product2.id, 2)
+            )
 
-        assertThat(response)
+        Assertions.assertThat(response)
             .extracting("id", "email", "address", "postcode", "orderStatus")
             .containsExactlyInAnyOrder(
-                response.getId(), "test@gmail.com", "서울시 강남구", "125454", ORDERED
-            );
+                response.id, "test@gmail.com", "서울시 강남구", "125454", OrderStatus.ORDERED
+            )
 
-        assertThat(response.getOrderDetails())
+        Assertions.assertThat(response.orderDetails)
             .hasSize(2)
             .extracting("category", "price", "quantity")
             .containsExactlyInAnyOrder(
-                tuple("원두", 50000L, 1),
-                tuple("음료", 3000L, 2)
-            );
+                Assertions.tuple("원두", 50000L, 1),
+                Assertions.tuple("음료", 3000L, 2)
+            )
     }
 
     @DisplayName("상품을 주문할 때 주문한 상품을 찾을 수 없는 경우 주문 할 수 없다.")
     @Test
-    void createOrderWhenProductNotFound() {
+    fun createOrderWhenProductNotFound() {
         //given
-        Product product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산");
-        Product product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소");
+        val product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산")
+        val product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소")
 
-        productRepository.saveAll(List.of(product1, product2));
+        productRepository!!.saveAll(List.of(product1, product2))
 
-        OrderCreateServiceRequest request = OrderCreateServiceRequest.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .orderProductQuantity(
-                List.of(
-                    OrderProductQuantity.builder()
-                        .productId(-1L)
-                        .quantity(1)
-                        .build(),
-                    OrderProductQuantity.builder()
-                        .productId(2L)
-                        .quantity(2)
-                        .build()
+        val request = OrderCreateServiceRequest(
+            email = "test@gmail.com",
+            address = "서울시 강남구",
+            postcode = "125454",
+            orderProductQuantity = List.of(
+                OrderProductQuantity(
+                    productId = -1L,
+                    quantity = 1
+                ),
+                OrderProductQuantity(
+                    productId = 2L,
+                    quantity = 2
                 )
             )
-            .build();
+        )
 
         //when
         //then
-        assertThatThrownBy(() -> orderService.createOrder(request))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("주문 상품 id 중 존재하지 않는 상품이 존재합니다.");
-
+        Assertions.assertThatThrownBy { orderService!!.createOrder(request) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("주문 상품 id 중 존재하지 않는 상품이 존재합니다.")
     }
 
 
+    @Test
     @DisplayName("주문 ID로 주문을 조회한다.")
+    fun getOrderByOrderId()
+        {
+            //given
+            val product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산")
+            val product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소")
+
+            val products =
+                productRepository!!.saveAll(
+                    List.of(
+                        product1,
+                        product2
+                    )
+                )
+
+            val order = Order.create("test@gmail.com", "서울시 강남구", "125454")
+
+            val savedOrder = orderRepository!!.save(order)
+
+            val orderProduct1 = createOrderProduct(order, products[0], 1)
+            val orderProduct2 = createOrderProduct(order, products[1], 2)
+
+            orderProductRepository!!.saveAll(List.of(orderProduct1, orderProduct2))
+
+            //when
+            val response = orderService!!.getOrder(savedOrder.id)
+            //then
+            Assertions.assertThat(response)
+                .extracting("id", "email", "address", "postcode", "orderStatus")
+                .containsExactlyInAnyOrder(
+                    savedOrder.id, "test@gmail.com", "서울시 강남구", "125454", OrderStatus.ORDERED
+                )
+
+            Assertions.assertThat(response.orderDetails)
+                .hasSize(2)
+                .extracting("category", "price", "quantity")
+                .containsExactlyInAnyOrder(
+                    Assertions.tuple("원두", 50000L, 1),
+                    Assertions.tuple("음료", 3000L, 2)
+                )
+        }
+
     @Test
-    void getOrderByOrderId() {
-        //given
-        Product product1 = Product.builder()
-            .name("스타벅스 원두")
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
-        Product product2 = Product.builder()
-            .name("스타벅스 라떼")
-            .category("음료")
-            .price(3000L)
-            .description("에스프레소")
-            .build();
-
-        List<Product> products = productRepository.saveAll(List.of(product1, product2));
-
-        Order order = Order.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
-
-        Order savedOrder = orderRepository.save(order);
-
-        OrderProduct orderProduct1 = createOrderProduct(order, products.get(0), 1);
-        OrderProduct orderProduct2 = createOrderProduct(order, products.get(1), 2);
-
-        orderProductRepository.saveAll(List.of(orderProduct1, orderProduct2));
-
-        //when
-        OrderResponse response = orderService.getOrder(savedOrder.getId());
-        //then
-        assertThat(response)
-            .extracting("id", "email", "address", "postcode", "orderStatus")
-            .containsExactlyInAnyOrder(
-                savedOrder.getId(), "test@gmail.com", "서울시 강남구", "125454", ORDERED
-            );
-
-        assertThat(response.getOrderDetails())
-            .hasSize(2)
-            .extracting("category", "price", "quantity")
-            .containsExactlyInAnyOrder(
-                tuple("원두", 50000L, 1),
-                tuple("음료", 3000L, 2)
-            );
-    }
-
     @DisplayName("주문 ID를 통해 주문을 조회 할 때 해당 ID의 주문이 존재하지 않을 때 주문을 조회 할 수 없다.")
+    fun getOrderByOrderIdWhenOrderIsNull()
+         {
+            //given
+            val orderId = -1L
+
+            //when
+            //then
+            Assertions.assertThatThrownBy {
+                orderService!!.getOrder(
+                    orderId
+                )
+            }
+                .isInstanceOf(IllegalArgumentException::class.java)
+                .hasMessage("해당 주문 id : " + orderId + "를 가진 주문이 존재하지 않습니다.")
+        }
+
     @Test
-    void getOrderByOrderIdWhenOrderIsNull() {
-        //given
-        Long orderId = -1L;
-
-        //when
-        //then
-        assertThatThrownBy(() -> orderService.getOrder(orderId))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("해당 주문 id : " + orderId + "를 가진 주문이 존재하지 않습니다.");
-    }
-
     @DisplayName("이메일을 통해 주문 목록을 조회한다.")
-    @Test
-    void getOrdersByEmail() {
-        //given
-        Product product1 = Product.builder()
-            .name("스타벅스 원두")
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
-        Product product2 = Product.builder()
-            .name("스타벅스 라떼")
-            .category("음료")
-            .price(3000L)
-            .description("에스프레소")
-            .build();
+    fun getOrdersByEmail() {
+            //given
+            val product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산")
+            val product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소")
 
-        List<Product> products = productRepository.saveAll(List.of(product1, product2));
+            val products =
+                productRepository!!.saveAll(
+                    List.of(
+                        product1,
+                        product2
+                    )
+                )
 
-        Order order1 = Order.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
+            val order1 = Order.create("test@gmail.com", "서울시 강남구", "125454")
+            val order2 = Order.create("test@gmail.com", "서울시 강남구", "125454")
 
-        Order order2 = Order.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
+            orderRepository!!.saveAll(
+                List.of(
+                    order1,
+                    order2
+                )
+            )
 
-        orderRepository.saveAll(List.of(order1, order2));
+            val orderProduct1 = createOrderProduct(order1, products[0], 1)
+            val orderProduct2 = createOrderProduct(order1, products[1], 2)
+            val orderProduct3 = createOrderProduct(order2, products[0], 2)
+            val orderProduct4 = createOrderProduct(order2, products[1], 4)
 
-        OrderProduct orderProduct1 = createOrderProduct(order1, products.get(0), 1);
-        OrderProduct orderProduct2 = createOrderProduct(order1, products.get(1), 2);
-        OrderProduct orderProduct3 = createOrderProduct(order2, products.get(0), 2);
-        OrderProduct orderProduct4 = createOrderProduct(order2, products.get(1), 4);
+            orderProductRepository!!.saveAll(
+                List.of(
+                    orderProduct1,
+                    orderProduct2,
+                    orderProduct3,
+                    orderProduct4
+                )
+            )
 
-        orderProductRepository.saveAll(List.of(
-            orderProduct1,
-            orderProduct2,
-            orderProduct3,
-            orderProduct4
-        ));
+            //when
+            val response = orderService!!.getOrdersByEmail("test@gmail.com")
 
-        //when
-        List<OrderResponse> response = orderService.getOrdersByEmail("test@gmail.com");
+            //then
+            Assertions.assertThat(response).hasSize(2)
+                .extracting("email", "address", "postcode", "orderStatus")
+                .containsExactlyInAnyOrder(
+                    Assertions.tuple("test@gmail.com", "서울시 강남구", "125454", OrderStatus.ORDERED),
+                    Assertions.tuple("test@gmail.com", "서울시 강남구", "125454", OrderStatus.ORDERED)
+                )
 
-        //then
-        assertThat(response).hasSize(2)
-            .extracting("email", "address", "postcode", "orderStatus")
-            .containsExactlyInAnyOrder(
-                tuple("test@gmail.com", "서울시 강남구", "125454", ORDERED),
-                tuple("test@gmail.com", "서울시 강남구", "125454", ORDERED)
-            );
+            Assertions.assertThat(response[0].orderDetails)
+                .hasSize(2)
+                .extracting("category", "price", "quantity")
+                .containsExactlyInAnyOrder(
+                    Assertions.tuple("원두", 50000L, 1),
+                    Assertions.tuple("음료", 3000L, 2)
+                )
 
-        assertThat(response.get(0).getOrderDetails())
-            .hasSize(2)
-            .extracting("category", "price", "quantity")
-            .containsExactlyInAnyOrder(
-                tuple("원두", 50000L, 1),
-                tuple("음료", 3000L, 2)
-            );
-
-        assertThat(response.get(1).getOrderDetails())
-            .hasSize(2)
-            .extracting("category", "price", "quantity")
-            .containsExactlyInAnyOrder(
-                tuple("원두", 50000L, 2),
-                tuple("음료", 3000L, 4)
-            );
-    }
+            Assertions.assertThat(response[1].orderDetails)
+                .hasSize(2)
+                .extracting("category", "price", "quantity")
+                .containsExactlyInAnyOrder(
+                    Assertions.tuple("원두", 50000L, 2),
+                    Assertions.tuple("음료", 3000L, 4)
+                )
+        }
 
     @DisplayName("매일 14시가 되면 주문 상태를 변경한다.")
     @Test
-    void updateOrderStatusByScheduler() {
+    fun updateOrderStatusByScheduler() {
         //given
-        Product product1 = Product.builder()
-            .name("스타벅스 원두")
-            .category("원두")
-            .price(50000L)
-            .description("에티오피아산")
-            .build();
-        Product product2 = Product.builder()
-            .name("스타벅스 라떼")
-            .category("음료")
-            .price(3000L)
-            .description("에스프레소")
-            .build();
+        val product1 = Product.create("스타벅스 원두", "원두", 50000L, "에티오피아산")
+        val product2 = Product.create("스타벅스 라떼", "음료", 3000L, "에스프레소")
 
-        List<Product> products = productRepository.saveAll(List.of(product1, product2));
+        val products = productRepository!!.saveAll(List.of(product1, product2))
 
-        Order order1 = Order.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
 
-        Order order2 = Order.builder()
-            .email("test@gmail.com")
-            .address("서울시 강남구")
-            .postcode("125454")
-            .build();
+        val order1 = Order.create("test@gmail.com", "서울시 강남구", "125454")
+        val order2 = Order.create("test@gmail.com", "서울시 강남구", "125454")
 
-        orderRepository.saveAll(List.of(order1, order2));
 
-        OrderProduct orderProduct1 = createOrderProduct(order1, products.get(0), 1);
-        OrderProduct orderProduct2 = createOrderProduct(order1, products.get(1), 2);
-        OrderProduct orderProduct3 = createOrderProduct(order2, products.get(0), 2);
-        OrderProduct orderProduct4 = createOrderProduct(order2, products.get(1), 4);
+        orderRepository!!.saveAll(List.of(order1, order2))
 
-        orderProductRepository.saveAll(List.of(
-            orderProduct1,
-            orderProduct2,
-            orderProduct3,
-            orderProduct4
-        ));
+        val orderProduct1 = createOrderProduct(order1, products[0], 1)
+        val orderProduct2 = createOrderProduct(order1, products[1], 2)
+        val orderProduct3 = createOrderProduct(order2, products[0], 2)
+        val orderProduct4 = createOrderProduct(order2, products[1], 4)
+
+        orderProductRepository!!.saveAll(
+            List.of(
+                orderProduct1,
+                orderProduct2,
+                orderProduct3,
+                orderProduct4
+            )
+        )
 
         //when
-        orderService.sendOrder();
+        orderService!!.sendOrder()
 
         //then
-        List<Order> orders = orderRepository.findAll();
+        val orders = orderRepository.findAll()
 
-        assertThat(orders).hasSize(2)
+        Assertions.assertThat(orders).hasSize(2)
             .extracting("orderStatus")
-            .containsExactlyInAnyOrder(DELIVERING, DELIVERING);
+            .containsExactlyInAnyOrder(OrderStatus.DELIVERING, OrderStatus.DELIVERING)
     }
 
 
-    private OrderProduct createOrderProduct(Order order, Product product, int quantity) {
-        return OrderProduct.builder()
-            .order(order)
-            .product(product)
-            .quantity(quantity)
-            .build();
+    private fun createOrderProduct(order: Order, product: Product, quantity: Int): OrderProduct {
+        return OrderProduct.create(order, product, quantity)
     }
 }

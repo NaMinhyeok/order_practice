@@ -1,17 +1,13 @@
-package gc.cafe.config;
+package gc.cafe.config
 
-import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
-import static org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly;
-
-public class ReplicationRoutingDataSource extends AbstractRoutingDataSource {
-
-    @Override
-    protected Object determineCurrentLookupKey() {
-        if (isCurrentTransactionReadOnly()) {
-            return "query";
+class ReplicationRoutingDataSource : AbstractRoutingDataSource() {
+    override fun determineCurrentLookupKey(): Any {
+        if (TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+            return "query"
         }
-        return "command";
+        return "command"
     }
-
 }

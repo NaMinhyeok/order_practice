@@ -1,19 +1,15 @@
-package gc.cafe.api.service.product;
+package gc.cafe.api.service.product
 
-import gc.cafe.api.service.product.request.ProductCreateServiceRequest;
-import gc.cafe.api.service.product.request.ProductSearchServiceRequest;
-import gc.cafe.api.service.product.request.ProductUpdateServiceRequest;
-import gc.cafe.api.service.product.response.ProductResponse;
-import org.springframework.data.domain.Page;
+import gc.cafe.api.service.product.request.ProductCreateServiceRequest
+import gc.cafe.api.service.product.request.ProductUpdateServiceRequest
+import gc.cafe.api.service.product.response.ProductResponse
 
-import java.util.List;
+interface ProductService {
+    fun createProduct(request: ProductCreateServiceRequest): ProductResponse
 
-public interface ProductService {
-    ProductResponse createProduct(ProductCreateServiceRequest request);
+    fun deleteProduct(id: Long): Long
 
-    Long deleteProduct(Long id);
+    fun updateProduct(id: Long, request: ProductUpdateServiceRequest): ProductResponse
 
-    ProductResponse updateProduct(Long id, ProductUpdateServiceRequest request);
-
-    ProductResponse getProduct(Long id);
+    fun getProduct(id: Long): ProductResponse
 }

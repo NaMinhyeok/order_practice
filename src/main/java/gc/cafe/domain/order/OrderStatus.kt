@@ -1,13 +1,12 @@
-package gc.cafe.domain.order;
+package gc.cafe.domain.order
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter
+import lombok.RequiredArgsConstructor
 
-@Getter
-@RequiredArgsConstructor
-public enum OrderStatus {
+enum class OrderStatus(
+    val description: String
+) {
     ORDERED("주문 완료"),
-    DELIVERING("배송 진행 중");
-
-    private final String text;
+    DELIVERING("배송 진행 중")
+    ;
 }

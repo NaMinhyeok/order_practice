@@ -1,57 +1,45 @@
-package gc.cafe.domain.product;
+package gc.cafe.domain.product
 
-import gc.cafe.api.service.product.request.ProductUpdateServiceRequest;
-import gc.cafe.domain.BaseEntity;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import gc.cafe.domain.BaseEntity
+import jakarta.persistence.*
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "products")
-public class Product extends BaseEntity {
+class Product(
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
-    private Long id;
+    val id: Long = 0,
 
-    @Column(name = "product_name", nullable = false, length = 20)
-    private String name;
+    @field:Column(name = "product_name", nullable = false, length = 20)
+    var name: String,
 
-    @Column(nullable = false, length = 50)
-    private String category;
+    @field:Column(nullable = false, length = 50)
+    var category: String,
 
-    @Column(nullable = false)
-    private Long price;
+    @field:Column(nullable = false)
+    var price: Long,
 
-    @Column(nullable = false, length = 500)
-    private String description;
+    @field:Column(nullable = false, length = 500)
+    var description: String
+) : BaseEntity() {
 
-    public void updateProduct(String name, String category, Long price, String description) {
-        this.name = name;
-        this.category = category;
-        this.price = price;
-        this.description = description;
+    fun updateProduct(name: String, category: String, price: Long, description: String) {
+        this.name = name
+        this.category = category
+        this.price = price
+        this.description = description
     }
 
-    @Builder
-    private Product(String name, String category, Long price, String description) {
-        this.name = name;
-        this.category = category;
-        this.price = price;
-        this.description = description;
+    companion object {
+        fun create(name: String, category: String, price: Long, description: String): Product {
+            return Product(
+                name = name,
+                category = category,
+                price = price,
+                description = description
+            )
+        }
     }
-
-    public static Product create(String name, String category, Long price, String description) {
-        return Product.builder()
-            .name(name)
-            .category(category)
-            .price(price)
-            .description(description)
-            .build();
-    }
-
 }

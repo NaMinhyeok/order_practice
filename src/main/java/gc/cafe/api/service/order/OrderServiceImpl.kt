@@ -1,83 +1,75 @@
-package gc.cafe.api.service.order;
+package gc.cafe.api.service.order
+
+import gc.cafe.api.service.order.request.OrderCreateServiceRequest
+import gc.cafe.api.service.order.response.OrderResponse
+import gc.cafe.domain.order.Order
+import gc.cafe.domain.order.OrderRepository
+import gc.cafe.domain.order.OrderStatus
+import gc.cafe.domain.orderproduct.OrderProduct
+import gc.cafe.domain.orderproduct.OrderProduct.Companion.create
+import gc.cafe.domain.orderproduct.OrderProductRepository
+import gc.cafe.domain.product.Product
+import gc.cafe.domain.product.ProductRepository
+import org.springframework.scheduling.annotation.Async
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.function.Consumer
 
 
-import gc.cafe.api.service.order.request.OrderCreateServiceRequest;
-import gc.cafe.api.service.order.response.OrderResponse;
-import gc.cafe.domain.order.Order;
-import gc.cafe.domain.order.OrderRepository;
-import gc.cafe.domain.orderproduct.OrderProduct;
-import gc.cafe.domain.orderproduct.OrderProductRepository;
-import gc.cafe.domain.product.Product;
-import gc.cafe.domain.product.ProductRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Set;
-
-import static gc.cafe.domain.order.OrderStatus.DELIVERING;
-import static gc.cafe.domain.order.OrderStatus.ORDERED;
-
-@RequiredArgsConstructor
 @Transactional
 @Service
-public class OrderServiceImpl implements OrderService {
+class OrderServiceImpl(
+    private val orderRepository: OrderRepository,
+    private val productRepository: ProductRepository,
+    private val orderProductRepository: OrderProductRepository
+) : OrderService {
+    override fun createOrder(request: OrderCreateServiceRequest): OrderResponse {
+        val order = Order.create(request.email, request.address, request.postcode)
 
-    private final OrderRepository orderRepository;
+        val savedOrder = orderRepository.save(order)
 
-    private final ProductRepository productRepository;
+        val productIds: Set<Long> = request.orderProductQuantityMap.keys
+        val products = productRepository.findAllById(productIds)
 
-    private final OrderProductRepository orderProductRepository;
+        require(productIds.size == products.size) { "주문 상품 id 중 존재하지 않는 상품이 존재합니다." }
 
-    @Override
-    public OrderResponse createOrder(OrderCreateServiceRequest request) {
+        val orderProducts = products.stream()
+            .map { product: Product ->
+                request.orderProductQuantityMap[product.id]?.let {
+                    create(
+                        savedOrder,
+                        product,
+                        it
+                    )
+                }
+            }
+            .toList()
 
-        Order order = Order.create(request.getEmail(), request.getAddress(), request.getPostcode());
+        orderProductRepository.saveAll(orderProducts)
 
-        Order savedOrder = orderRepository.save(order);
-
-        Set<Long> productIds = request.getOrderProductQuantity().keySet();
-        List<Product> products = productRepository.findAllById(productIds);
-
-        if (productIds.size() != products.size()) {
-            throw new IllegalArgumentException("주문 상품 id 중 존재하지 않는 상품이 존재합니다.");
-        }
-
-        List<OrderProduct> orderProducts = products.stream()
-            .map(product -> OrderProduct.create(savedOrder, product, request.getOrderProductQuantity().get(product.getId())))
-            .toList();
-
-        orderProductRepository.saveAll(orderProducts);
-
-        return OrderResponse.of(savedOrder);
+        return OrderResponse.of(savedOrder)
     }
 
 
-    @Override
     @Transactional(readOnly = true)
-    public OrderResponse getOrder(Long id) {
-        Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("해당 주문 id : " + id + "를 가진 주문이 존재하지 않습니다."));
-        return OrderResponse.of(order);
+    override fun getOrder(id: Long): OrderResponse {
+        val order = orderRepository.findById(id)
+            .orElseThrow { IllegalArgumentException("해당 주문 id : " + id + "를 가진 주문이 존재하지 않습니다.") }
+        return OrderResponse.of(order)
     }
 
-    @Override
-    public List<OrderResponse> getOrdersByEmail(String email) {
-        List<Order> orders = orderRepository.findByEmail(email);
+    override fun getOrdersByEmail(email: String): List<OrderResponse> {
+        val orders = orderRepository.findByEmail(email)
 
-        return orders.stream()
-            .map(OrderResponse::of)
-            .toList();
+        return orders.map { OrderResponse.of(it) }
     }
 
     @Async("threadPoolTaskExecutor")
     @Scheduled(cron = "0 0 14 * * *")
-    protected void sendOrder() {
-        List<Order> orders = orderRepository.findByOrderStatus(ORDERED);
+    fun sendOrder() {
+        val orders = orderRepository.findByOrderStatus(OrderStatus.ORDERED)
 
-        orders.forEach(order -> order.updateStatus(DELIVERING));
+        orders.forEach(Consumer { order: Order -> order.updateStatus(OrderStatus.DELIVERING) })
     }
 }
