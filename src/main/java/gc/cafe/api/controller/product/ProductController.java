@@ -40,14 +40,4 @@ public class ProductController {
         return ApiResponse.ok(productService.getProduct(id));
     }
 
-    @GetMapping("/search")
-    public ApiResponse<List<ProductResponse>> getProductByNameOrCategory(ProductSearchRequest request) {
-        return ApiResponse.ok(productService.getProductByNameOrCategory(request.toServiceRequest()));
-    }
-
-    @GetMapping
-    public ApiResponse<Page<ProductResponse>> getProducts(@RequestParam(defaultValue = "1") int page) {
-        return ApiResponse.ok(productService.getProducts(page));
-    }
-
 }

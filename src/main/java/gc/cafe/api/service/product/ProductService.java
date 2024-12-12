@@ -16,8 +16,4 @@ public interface ProductService {
     ProductResponse updateProduct(Long id, ProductUpdateServiceRequest request);
 
     ProductResponse getProduct(Long id);
-
-    List<ProductResponse> getProductByNameOrCategory(ProductSearchServiceRequest request);
-
-    Page<ProductResponse> getProducts(int page);
 }

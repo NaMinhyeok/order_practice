@@ -829,53 +829,6 @@ class ProductControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data").isEmpty());
     }
 
-    @DisplayName("전체 상품을 페이징 기반으로 조회한다.")
-    @Test
-    void getProducts() throws Exception {
-        int page = 1;
-
-        given(productService.getProducts(page))
-            .willReturn(
-                new PageImpl<>(List.of(ProductResponse.builder()
-                        .id(1L)
-                        .name("스타벅스 원두")
-                        .category("원두")
-                        .price(50000L)
-                        .description("에티오피아산")
-                        .build(),
-                    ProductResponse.builder()
-                        .id(2L)
-                        .name("이디야 커피")
-                        .category("커피")
-                        .price(40000L)
-                        .description("국산")
-                        .build()
-                ))
-            );
-
-        mockMvc.perform(
-                get("/api/v1/products")
-                    .param("page", String.valueOf(page))
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value("200"))
-            .andExpect(jsonPath("$.status").value("OK"))
-            .andExpect(jsonPath("$.message").value("OK"))
-            .andExpect(jsonPath("$.data.content").isArray())
-            .andExpect(jsonPath("$.data.content[0].id").isNumber())
-            .andExpect(jsonPath("$.data.content[0].name").isString())
-            .andExpect(jsonPath("$.data.content[0].category").isString())
-            .andExpect(jsonPath("$.data.content[0].price").isNumber())
-            .andExpect(jsonPath("$.data.content[0].description").isString())
-            .andExpect(jsonPath("$.data.content[1].id").isNumber())
-            .andExpect(jsonPath("$.data.content[1].name").isString())
-            .andExpect(jsonPath("$.data.content[1].category").isString())
-            .andExpect(jsonPath("$.data.content[1].price").isNumber())
-            .andExpect(jsonPath("$.data.content[1].description").isString());
-    }
-
-
     private static String generateFixedLengthString(int length) {
         return "나".repeat(length);
     }

@@ -54,23 +54,6 @@ public class ProductServiceImpl implements ProductService {
         return ProductResponse.of(product);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public List<ProductResponse> getProductByNameOrCategory(ProductSearchServiceRequest request) {
-        List<Product> products = productRepository.findProductByNameOrCategory(request.getName(), request.getCategory());
-        return products.stream()
-            .map(ProductResponse::of)
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public Page<ProductResponse> getProducts(int page) {
-        Pageable pageable = PageRequest.of(page,PAGE_SIZE);
-        Page<Product> products = productRepository.findAllUsingQueryDsl(pageable);
-        return products.map(ProductResponse::of);
-    }
-
     private Product getProductById(Long id) {
         return productRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("해당 id : " + id + "를 가진 상품을 찾을 수 없습니다."));
