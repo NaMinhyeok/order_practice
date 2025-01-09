@@ -47,7 +47,6 @@ dependencies {
     implementation ("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation ("org.jetbrains.kotlin:kotlin-reflect")
 
-
     // h2
     runtimeOnly("com.h2database:h2")
 
@@ -58,6 +57,9 @@ dependencies {
     add("asciidoctorExt", "org.springframework.restdocs:spring-restdocs-asciidoctor")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
     testImplementation("com.epages:restdocs-api-spec-mockmvc:0.18.2")
+
+    // Logstash
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 }
 
 tasks.withType<Test> {
