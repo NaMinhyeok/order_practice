@@ -14,7 +14,7 @@ class ProductController(
     private val productService: ProductService
 ) {
     @PostMapping
-    fun createProduct(@RequestBody request: @Valid ProductCreateRequest): ApiResponse<ProductResponse> {
+    fun createProduct(@Valid @RequestBody request: ProductCreateRequest): ApiResponse<ProductResponse> {
         return ApiResponse.created(productService.createProduct(request.toServiceRequest()))
     }
 
@@ -26,7 +26,7 @@ class ProductController(
     @PutMapping("/{id}")
     fun updateProduct(
         @PathVariable id: Long,
-        @RequestBody request: @Valid ProductUpdateRequest
+        @Valid @RequestBody request: ProductUpdateRequest
     ): ApiResponse<ProductResponse> {
         return ApiResponse.ok(productService.updateProduct(id, request.toServiceRequest()))
     }
