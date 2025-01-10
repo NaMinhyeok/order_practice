@@ -60,6 +60,13 @@ dependencies {
 
     // Logstash
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
+    // Slack
+    implementation("com.slack.api:slack-api-client:1.45.0")
+
+    // Add these dependencies if you want to use the Kotlin DSL for building rich messages
+    implementation("com.slack.api:slack-api-model-kotlin-extension:1.45.0")
+    implementation("com.slack.api:slack-api-client-kotlin-extension:1.45.0")
 }
 
 tasks.withType<Test> {

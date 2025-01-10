@@ -2,6 +2,10 @@ spring:
   profiles:
     default: local
 
+slack:
+  webhook:
+    url: ${WEBHOOK_URL}
+
 ---
 
 spring:
@@ -27,6 +31,10 @@ spring:
   h2:
     console:
       enabled: true
+
+  elasticsearch:
+    uris: http://localhost:9200
+
 ---
 
 spring:
