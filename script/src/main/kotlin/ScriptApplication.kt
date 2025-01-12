@@ -1,3 +1,4 @@
+import com.slack.api.Slack
 import config.GithubConfig
 import review.ReviewerAssigner
 import review.ReviewerFileReader
@@ -13,7 +14,8 @@ fun main() {
     val prCreator = System.getenv("PR_CREATOR") ?: throw IllegalArgumentException("PR_CREATOR is not found")
 
     val githubClient = GithubConfig().createGithubClient(token)
+    val slackClient = Slack.getInstance()
     val candidateReviewers = ReviewerFileReader().readReviewers()
     val selectReviewers = Reviewers(candidateReviewers).selectReviewers(prCreator)
-    ReviewerAssigner(githubClient, selectReviewers).assignReviewer(repository, prNumber)
+    ReviewerAssigner(githubClient, slackClient, selectReviewers).assignReviewer(repository, prNumber)
 }
